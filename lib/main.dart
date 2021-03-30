@@ -6,7 +6,146 @@ import 'package:flutter_ssi_wallet/flutter_ssi_wallet.dart';
 void main(List<String> args) {
   var runner = CommandRunner('main', 'Some description')
     ..addCommand(VerifyCommand())
+    ..addCommand(WalletCommand())
+    ..addCommand(SignatureCommand())
     ..run(args);
+}
+
+class WalletCommand extends Command {
+  final name = 'wallet';
+  final description = 'Interacting with a ssi-wallet';
+
+  WalletCommand() {
+    argParser
+      ..addFlag('init', abbr: 'i', help: 'Initialize a new wallet')
+      ..addOption('directory',
+          abbr: 'd',
+          help: 'Directory in Filesystem to store Wallet-Files',
+          defaultsTo: 'ssi_wallet')
+      ..addOption('password',
+          abbr: 'p', help: 'Password the wallet is secured with')
+      ..addFlag('generateConnectionDid',
+          abbr: 'c', help: 'generates a new DID for a Connection');
+  }
+
+  run() async {
+    if (argResults['password'] == null) {
+      stderr.writeln('Problem occurred: Password should be given');
+      exit(2);
+    }
+
+    var wallet = WalletStore(argResults['directory']);
+    await wallet.openBoxes(argResults['password']);
+
+    if (argResults['init']) {
+      try {
+        var mn = wallet.initialize();
+        stdout.writeln(
+            'The keys in this wallet could be restored with this mnemonic (store it at a safe place): $mn');
+      } catch (e) {
+        stderr.writeln(e);
+        exit(2);
+      }
+    }
+
+    if (argResults['generateConnectionDid']) {
+      try {
+        var did = await wallet.getNextConnectionDID();
+        stdout.writeln(did);
+      } catch (e) {
+        stderr.writeln(e);
+        exit(2);
+      }
+    }
+
+    await wallet.closeBoxes();
+    exit(0);
+  }
+}
+
+class SignatureCommand extends Command {
+  final name = 'messages';
+  final description =
+      'Signs a given message-string and verifies signature at a message-string';
+
+  SignatureCommand() {
+    argParser
+      ..addFlag('sign', abbr: 's', help: 'Sign a message')
+      ..addFlag('verify', abbr: 'v', help: 'verify a signature')
+      ..addOption('message',
+          abbr: 'm', help: 'the message to sign or to check the signature for')
+      ..addOption('signature', help: 'signature to check (as jws)')
+      ..addOption('did',
+          help:
+              'The did that should be used to sign or the did expected to have signed')
+      ..addOption('wallet',
+          abbr: 'w',
+          help: 'Path to a Wallet the signing keys are in',
+          defaultsTo: 'ssi_wallet')
+      ..addOption('password', abbr: 'p', help: 'Password of the wallet')
+      ..addOption('rpcUrl',
+          defaultsTo: 'http://localhost:8545',
+          help: 'Url for RPC-Endpoint of Ethereum-Node')
+      ..addOption('erc1056Contract',
+          abbr: 'e',
+          help: 'Contract address of ErC1056-Contract (EthereumDIDRegistry)');
+  }
+
+  run() async {
+    if (argResults['password'] == null) {
+      stderr.writeln('Wallet password missing');
+      exit(2);
+    }
+
+    var wallet = WalletStore(argResults['wallet']);
+    await wallet.openBoxes(argResults['password']);
+
+    if (argResults['sign']) {
+      var sig = signString(wallet, argResults['did'], argResults['message']);
+      stdout.writeln(sig);
+    }
+
+    if (argResults['verify']) {
+      Erc1056 erc1056;
+      if (argResults['rpcUrl'] != null &&
+          argResults['erc1056Contract'] != null) {
+        try {
+          erc1056 = Erc1056(argResults['rpcUrl'],
+              contractAddress: argResults['erc1056Contract']);
+        } catch (e) {
+          stderr.writeln(e);
+          await wallet.closeBoxes();
+          exit(2);
+        }
+      }
+
+      if (erc1056 != null) {
+        try {
+          var result = await verifyStringSignature(
+              argResults['message'], argResults['signature'], argResults['did'],
+              erc1056: erc1056);
+          stdout.writeln(result);
+        } catch (e) {
+          stderr.writeln(e);
+          await wallet.closeBoxes();
+          exit(2);
+        }
+      } else {
+        try {
+          var result = await verifyStringSignature(argResults['message'],
+              argResults['signature'], argResults['did']);
+          stdout.writeln(result);
+        } catch (e) {
+          stderr.writeln(e);
+          await wallet.closeBoxes();
+          exit(2);
+        }
+      }
+    }
+
+    await wallet.closeBoxes();
+    exit(0);
+  }
 }
 
 class VerifyCommand extends Command {
