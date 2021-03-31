@@ -8,7 +8,74 @@ void main(List<String> args) {
     ..addCommand(VerifyCommand())
     ..addCommand(WalletCommand())
     ..addCommand(SignatureCommand())
+    ..addCommand(Erc1056Command())
     ..run(args);
+}
+
+class Erc1056Command extends Command {
+  final name = 'didRegistry';
+  final description =
+      'Interacting with an instance of erc1056 - Contract (EthereumDIDIRegistry)';
+
+  Erc1056Command() {
+    argParser
+      ..addOption('rpcUrl',
+          defaultsTo: 'http://localhost:8545',
+          help: 'Url for RPC-Endpoint of Ethereum-Node')
+      ..addOption('erc1056Contract',
+          abbr: 'e',
+          help: 'Contract address of ErC1056-Contract (EthereumDIDRegistry)')
+      ..addOption('did',
+          abbr: 'd',
+          help:
+              'The did to get identity information for / to change identity information for')
+      ..addOption('newDid', abbr: 'n', help: 'Did to rotate to')
+      ..addFlag('getAddress',
+          abbr: 'a', help: 'Get the current ethereum address or an identity')
+      ..addOption('wallet',
+          abbr: 'w',
+          help: 'Path to a Wallet the signing keys are in',
+          defaultsTo: 'ssi_wallet')
+      ..addOption('password', abbr: 'p', help: 'Password of the wallet');
+  }
+
+  run() async {
+    var erc1056 = Erc1056(argResults['rpcUrl'],
+        contractAddress: argResults['erc1056Contract']);
+
+    if (argResults['getAddress']) {
+      try {
+        var controller = await erc1056.identityOwner(argResults['did']);
+        stdout.writeln(controller);
+        exit(0);
+      } catch (e) {
+        stderr.writeln(e);
+        exit(2);
+      }
+    }
+    if (argResults['newDid'] != null) {
+      try {
+        if (argResults['password'] == null)
+          throw Exception('Wallet-Password missing');
+        var wallet = WalletStore(argResults['wallet']);
+        await wallet.openBoxes(argResults['password']);
+        var privKey = wallet.getPrivateKeyToCredentialDid(argResults['did']);
+        if (privKey == null) {
+          privKey = wallet.getPrivateKeyToConnectionDid(argResults['did']);
+        }
+        if (privKey == null) {
+          throw Exception('Could not find a private Key to the given did');
+        }
+        await erc1056.changeOwner(
+            privKey, argResults['did'], argResults['newDid']);
+        stdout.writeln('Successfully changed did-owner');
+        exit(0);
+      } catch (e) {
+        stderr.writeln(e);
+        exit(2);
+      }
+    }
+  }
 }
 
 class WalletCommand extends Command {
