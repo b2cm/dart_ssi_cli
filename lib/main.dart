@@ -148,6 +148,7 @@ class Erc1056Command extends Command {
       ..addOption('newDid', abbr: 'n', help: 'Did to rotate to')
       ..addFlag('getAddress',
           abbr: 'a', help: 'Get the current ethereum address or an identity')
+      ..addFlag('doc', help: 'get a minimal did-Document for an identity')
       ..addOption('wallet',
           abbr: 'w',
           help: 'Path to a Wallet the signing keys are in',
@@ -163,6 +164,16 @@ class Erc1056Command extends Command {
       try {
         var controller = await erc1056.identityOwner(argResults['did']);
         stdout.writeln(controller);
+        exit(0);
+      } catch (e) {
+        stderr.writeln(e);
+        exit(2);
+      }
+    }
+    if (argResults['doc']) {
+      try {
+        var doc = await erc1056.didDocument(argResults['did']);
+        stdout.writeln(doc);
         exit(0);
       } catch (e) {
         stderr.writeln(e);
