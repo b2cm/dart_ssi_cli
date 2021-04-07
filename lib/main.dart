@@ -289,7 +289,11 @@ class SignatureCommand extends Command {
           help: 'Url for RPC-Endpoint of Ethereum-Node')
       ..addOption('erc1056Contract',
           abbr: 'e',
-          help: 'Contract address of Erc1056-Contract (EthereumDIDRegistry)');
+          help: 'Contract address of Erc1056-Contract (EthereumDIDRegistry)')
+      ..addOption('jwsHeader',
+          abbr: 'j',
+          help:
+              'Custom jws-Header (json). alg value should be ES256K-R (only supported algorithm for now)');
   }
 
   run() async {
@@ -298,11 +302,21 @@ class SignatureCommand extends Command {
         stderr.writeln('Wallet password missing');
         exit(2);
       }
-      var wallet = WalletStore(argResults['wallet']);
-      await wallet.openBoxes(argResults['password']);
-      var sig = signString(wallet, argResults['did'], argResults['message']);
-      stdout.writeln(sig);
-      exit(0);
+      try {
+        var wallet = WalletStore(argResults['wallet']);
+        await wallet.openBoxes(argResults['password']);
+        var sig;
+        if (argResults['jwsHeader'] == null)
+          sig = signString(wallet, argResults['did'], argResults['message']);
+        else
+          sig = signString(wallet, argResults['did'], argResults['message'],
+              jwsHeader: argResults['jwsHeader']);
+        stdout.writeln(sig);
+        exit(0);
+      } catch (e) {
+        stderr.writeln(e);
+        exit(2);
+      }
     }
 
     if (argResults['verify']) {
