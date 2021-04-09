@@ -283,9 +283,13 @@ class SignatureCommand extends Command {
   SignatureCommand() {
     argParser
       ..addFlag('sign', abbr: 's', help: 'Sign a message')
+      ..addFlag('detached',
+          help: 'If set a detached jws (header..signature) is returned')
       ..addFlag('verify', abbr: 'v', help: 'verify a signature')
       ..addOption('message',
-          abbr: 'm', help: 'the message to sign or to check the signature for')
+          abbr: 'm',
+          help:
+              'the message to sign or to check the signature for. If the message is included in jws as payload it must not be given separately')
       ..addOption('signature', help: 'signature to check (as jws)')
       ..addOption('did',
           help:
@@ -318,10 +322,12 @@ class SignatureCommand extends Command {
         await wallet.openBoxes(argResults['password']);
         var sig;
         if (argResults['jwsHeader'] == null)
-          sig = signString(wallet, argResults['did'], argResults['message']);
+          sig = signString(wallet, argResults['did'], argResults['message'],
+              detached: argResults['detached']);
         else
           sig = signString(wallet, argResults['did'], argResults['message'],
-              jwsHeader: argResults['jwsHeader']);
+              jwsHeader: argResults['jwsHeader'],
+              detached: argResults['detached']);
         stdout.writeln(sig);
         exit(0);
       } catch (e) {
@@ -346,8 +352,11 @@ class SignatureCommand extends Command {
       if (erc1056 != null) {
         try {
           var result = await verifyStringSignature(
-              argResults['message'], argResults['signature'], argResults['did'],
-              erc1056: erc1056);
+            argResults['signature'],
+            argResults['did'],
+            erc1056: erc1056,
+            toSign: argResults['message'],
+          );
           stdout.writeln(result);
         } catch (e) {
           stderr.writeln(e);
@@ -355,8 +364,9 @@ class SignatureCommand extends Command {
         }
       } else {
         try {
-          var result = await verifyStringSignature(argResults['message'],
-              argResults['signature'], argResults['did']);
+          var result = await verifyStringSignature(
+              argResults['signature'], argResults['did'],
+              toSign: argResults['message']);
           stdout.writeln(result);
         } catch (e) {
           stderr.writeln(e);
