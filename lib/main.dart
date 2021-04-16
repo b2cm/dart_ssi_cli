@@ -409,18 +409,15 @@ class VerifyCommand extends Command {
   }
 
   run() async {
-    if (argResults['erc1056Contract'] == null) {
-      stderr.writeln('Contract address for ERC1056 Contract missing');
-      exit(2);
-    }
     if (argResults['signedJson'] == null) {
       stderr.writeln('Checkable json-object missing');
       exit(2);
     }
 
     Erc1056 erc1056;
-    erc1056 = Erc1056(argResults['rpcUrl'],
-        contractAddress: argResults['erc1056Contract']);
+    if (argResults['erc1056Contract'] != null && argResults['rpcUrl'] != null)
+      erc1056 = Erc1056(argResults['rpcUrl'],
+          contractAddress: argResults['erc1056Contract']);
 
     Map<String, dynamic> givenJson = credentialToMap(argResults['signedJson']);
     bool presentation = true;
@@ -439,7 +436,7 @@ class VerifyCommand extends Command {
     bool res = true;
     bool compare = true;
     if (presentation) {
-      if (argResults['checkForRevocation']) {
+      if (argResults['checkForRevocation'] && erc1056 != null) {
         try {
           res = await verifyPresentation(givenJson, argResults['challenge'],
               erc1056: erc1056, rpcUrl: argResults['rpcUrl']);
@@ -447,10 +444,25 @@ class VerifyCommand extends Command {
           stderr.writeln(e);
           exit(2);
         }
-      } else {
+      } else if (!argResults['checkForRevocation'] && erc1056 != null) {
         try {
           res = await verifyPresentation(givenJson, argResults['challenge'],
               erc1056: erc1056);
+        } catch (e) {
+          stderr.writeln(e);
+          exit(2);
+        }
+      } else if (argResults['checkForRevocation'] && erc1056 == null) {
+        try {
+          res = await verifyPresentation(givenJson, argResults['challenge'],
+              rpcUrl: argResults['rpcUrl']);
+        } catch (e) {
+          stderr.writeln(e);
+          exit(2);
+        }
+      } else {
+        try {
+          res = await verifyPresentation(givenJson, argResults['challenge']);
         } catch (e) {
           stderr.writeln(e);
           exit(2);
@@ -480,12 +492,37 @@ class VerifyCommand extends Command {
         });
       }
     } else {
-      if (argResults['checkForRevocation']) {
-        res = await verifyCredential(givenJson,
-            erc1056: erc1056, rpcUrl: argResults['rpcUrl']);
+      if (argResults['checkForRevocation'] && erc1056 != null) {
+        try {
+          res = await verifyCredential(givenJson,
+              erc1056: erc1056, rpcUrl: argResults['rpcUrl']);
+        } catch (e) {
+          stderr.writeln(e);
+          exit(2);
+        }
+      } else if (!argResults['checkForRevocation'] && erc1056 != null) {
+        try {
+          res = await verifyCredential(givenJson, erc1056: erc1056);
+        } catch (e) {
+          stderr.writeln(e);
+          exit(2);
+        }
+      } else if (argResults['checkForRevocation'] && erc1056 == null) {
+        try {
+          res = await verifyCredential(givenJson, rpcUrl: argResults['rpcUrl']);
+        } catch (e) {
+          stderr.writeln(e);
+          exit(2);
+        }
       } else {
-        res = await verifyCredential(givenJson, erc1056: erc1056);
+        try {
+          res = await verifyCredential(givenJson);
+        } catch (e) {
+          stderr.writeln(e);
+          exit(2);
+        }
       }
+
       if (argResults['plaintextCredential'].length > 0) {
         try {
           compare = compareW3cCredentialAndPlaintext(

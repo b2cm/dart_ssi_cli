@@ -1,6 +1,10 @@
 # ssi_cli
 
-Build executable: ```dart compile exe lib/main.dart -o build/main```
+Build executable: 
+```
+mkdir build
+dart compile exe lib/main.dart -o build/main
+```
 
 # Implemented Functions
 - verify : check if verifiable credential or presentation is correct
@@ -8,7 +12,7 @@ Build executable: ```dart compile exe lib/main.dart -o build/main```
 - wallet: 
     - initialize one 
     - generate new connection-dids
-    - list connection didds
+    - list connection dids
     - recover keys from mnemonic
 - didRegistry: 
     - get Identity owner for a given did
