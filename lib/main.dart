@@ -44,8 +44,8 @@ class RevocationCommand extends Command {
 
   run() async {
     //Initialize new Revocation Registry
-    if (argResults['init']) {
-      var registry = RevocationRegistry(argResults['rpcUrl']);
+    if (argResults!['init']) {
+      var registry = RevocationRegistry(argResults!['rpcUrl']);
       var wallet = await _openWallet();
       String privKey = await _getPrivateKey(wallet);
       try {
@@ -59,17 +59,17 @@ class RevocationCommand extends Command {
       }
     }
 
-    if (argResults['revocationContract'] == null) {
+    if (argResults!['revocationContract'] == null) {
       stderr.writeln('no contract address for Revocation contract given');
       exit(2);
     }
-    var registry = RevocationRegistry(argResults['rpcUrl'],
-        contractAddress: argResults['revocationContract']);
+    var registry = RevocationRegistry(argResults!['rpcUrl'],
+        contractAddress: argResults!['revocationContract']);
 
     // Check for Revocation
-    if (argResults['isRevoked'] != null) {
+    if (argResults!['isRevoked'] != null) {
       try {
-        var res = await registry.isRevoked(argResults['isRevoked']);
+        var res = await registry.isRevoked(argResults!['isRevoked']);
         stdout.writeln(res);
         exit(0);
       } catch (e) {
@@ -80,11 +80,11 @@ class RevocationCommand extends Command {
     }
 
     //Revoke a credential
-    if (argResults['revoke'] != null) {
+    if (argResults!['revoke'] != null) {
       var wallet = await _openWallet();
       var privKey = await _getPrivateKey(wallet);
       try {
-        await registry.revoke(privKey, argResults['revoke']);
+        await registry.revoke(privKey, argResults!['revoke']);
         stdout.writeln('Credential revoked');
         exit(0);
       } catch (e) {
@@ -96,27 +96,27 @@ class RevocationCommand extends Command {
   }
 
   Future<WalletStore> _openWallet() async {
-    if (argResults['password'] == null) {
+    if (argResults!['password'] == null) {
       stderr.writeln('Wallet-Password missing');
       exit(2);
     }
-    var wallet = WalletStore(argResults['wallet']);
-    await wallet.openBoxes(argResults['password']);
+    var wallet = WalletStore(argResults!['wallet']);
+    await wallet.openBoxes(argResults!['password']);
     return wallet;
   }
 
   Future<String> _getPrivateKey(WalletStore wallet) async {
-    String privKey;
-    if (argResults['did'] == null) {
+    String? privKey;
+    if (argResults!['did'] == null) {
       privKey = wallet.getStandardIssuerPrivateKey();
       if (privKey == null) {
         await wallet.initializeIssuer();
         privKey = wallet.getStandardIssuerPrivateKey();
       }
     } else {
-      privKey = wallet.getPrivateKeyToCredentialDid(argResults['did']);
+      privKey = wallet.getPrivateKeyToCredentialDid(argResults!['did']);
       if (privKey == null) {
-        privKey = wallet.getPrivateKeyToConnectionDid(argResults['did']);
+        privKey = wallet.getPrivateKeyToConnectionDid(argResults!['did']);
       }
     }
 
@@ -157,12 +157,12 @@ class Erc1056Command extends Command {
   }
 
   run() async {
-    var erc1056 = Erc1056(argResults['rpcUrl'],
-        contractAddress: argResults['erc1056Contract']);
+    var erc1056 = Erc1056(argResults!['rpcUrl'],
+        contractAddress: argResults!['erc1056Contract']);
 
-    if (argResults['getAddress']) {
+    if (argResults!['getAddress']) {
       try {
-        var controller = await erc1056.identityOwner(argResults['did']);
+        var controller = await erc1056.identityOwner(argResults!['did']);
         stdout.writeln(controller);
         exit(0);
       } catch (e) {
@@ -170,9 +170,9 @@ class Erc1056Command extends Command {
         exit(2);
       }
     }
-    if (argResults['doc']) {
+    if (argResults!['doc']) {
       try {
-        var doc = await erc1056.didDocument(argResults['did']);
+        var doc = await erc1056.didDocument(argResults!['did']);
         stdout.writeln(doc);
         exit(0);
       } catch (e) {
@@ -180,21 +180,21 @@ class Erc1056Command extends Command {
         exit(2);
       }
     }
-    if (argResults['newDid'] != null) {
+    if (argResults!['newDid'] != null) {
       try {
-        if (argResults['password'] == null)
+        if (argResults!['password'] == null)
           throw Exception('Wallet-Password missing');
-        var wallet = WalletStore(argResults['wallet']);
-        await wallet.openBoxes(argResults['password']);
-        var privKey = wallet.getPrivateKeyToCredentialDid(argResults['did']);
+        var wallet = WalletStore(argResults!['wallet']);
+        await wallet.openBoxes(argResults!['password']);
+        var privKey = wallet.getPrivateKeyToCredentialDid(argResults!['did']);
         if (privKey == null) {
-          privKey = wallet.getPrivateKeyToConnectionDid(argResults['did']);
+          privKey = wallet.getPrivateKeyToConnectionDid(argResults!['did']);
         }
         if (privKey == null) {
           throw Exception('Could not find a private Key to the given did');
         }
         await erc1056.changeOwner(
-            privKey, argResults['did'], argResults['newDid']);
+            privKey, argResults!['did'], argResults!['newDid']);
         stdout.writeln('Successfully changed did-owner');
         exit(0);
       } catch (e) {
@@ -226,15 +226,15 @@ class WalletCommand extends Command {
   }
 
   run() async {
-    if (argResults['password'] == null) {
+    if (argResults!['password'] == null) {
       stderr.writeln('Problem occurred: Password should be given');
       exit(2);
     }
 
-    var wallet = WalletStore(argResults['directory']);
-    await wallet.openBoxes(argResults['password']);
+    var wallet = WalletStore(argResults!['directory']);
+    await wallet.openBoxes(argResults!['password']);
 
-    if (argResults['init']) {
+    if (argResults!['init']) {
       try {
         var mn = wallet.initialize();
         stdout.writeln(
@@ -245,9 +245,9 @@ class WalletCommand extends Command {
       }
     }
 
-    if (argResults['mnemonic'] != null) {
+    if (argResults!['mnemonic'] != null) {
       try {
-        var mn = wallet.initialize(argResults['mnemonic']);
+        var mn = wallet.initialize(mnemonic: argResults!['mnemonic']);
         stdout.writeln('Successfully restored wallet with mnemonic: $mn');
       } catch (e) {
         stderr.writeln(e);
@@ -255,7 +255,7 @@ class WalletCommand extends Command {
       }
     }
 
-    if (argResults['generateConnectionDid']) {
+    if (argResults!['generateConnectionDid']) {
       try {
         var did = await wallet.getNextConnectionDID();
         stdout.writeln(did);
@@ -265,7 +265,7 @@ class WalletCommand extends Command {
       }
     }
 
-    if (argResults['list']) {
+    if (argResults!['list']) {
       var all = wallet.getAllConnections();
       stdout.writeln(all.keys.toList());
     }
@@ -312,22 +312,22 @@ class SignatureCommand extends Command {
   }
 
   run() async {
-    if (argResults['sign']) {
-      if (argResults['password'] == null) {
+    if (argResults!['sign']) {
+      if (argResults!['password'] == null) {
         stderr.writeln('Wallet password missing');
         exit(2);
       }
       try {
-        var wallet = WalletStore(argResults['wallet']);
-        await wallet.openBoxes(argResults['password']);
+        var wallet = WalletStore(argResults!['wallet']);
+        await wallet.openBoxes(argResults!['password']);
         var sig;
-        if (argResults['jwsHeader'] == null)
-          sig = signString(wallet, argResults['did'], argResults['message'],
-              detached: argResults['detached']);
+        if (argResults!['jwsHeader'] == null)
+          sig = signString(wallet, argResults!['did'], argResults!['message'],
+              detached: argResults!['detached']);
         else
-          sig = signString(wallet, argResults['did'], argResults['message'],
-              jwsHeader: argResults['jwsHeader'],
-              detached: argResults['detached']);
+          sig = signString(wallet, argResults!['did'], argResults!['message'],
+              jwsHeader: argResults!['jwsHeader'],
+              detached: argResults!['detached']);
         stdout.writeln(sig);
         exit(0);
       } catch (e) {
@@ -336,13 +336,13 @@ class SignatureCommand extends Command {
       }
     }
 
-    if (argResults['verify']) {
-      Erc1056 erc1056;
-      if (argResults['rpcUrl'] != null &&
-          argResults['erc1056Contract'] != null) {
+    if (argResults!['verify']) {
+      Erc1056? erc1056;
+      if (argResults!['rpcUrl'] != null &&
+          argResults!['erc1056Contract'] != null) {
         try {
-          erc1056 = Erc1056(argResults['rpcUrl'],
-              contractAddress: argResults['erc1056Contract']);
+          erc1056 = Erc1056(argResults!['rpcUrl'],
+              contractAddress: argResults!['erc1056Contract']);
         } catch (e) {
           stderr.writeln(e);
           exit(2);
@@ -352,10 +352,10 @@ class SignatureCommand extends Command {
       if (erc1056 != null) {
         try {
           var result = await verifyStringSignature(
-            argResults['signature'],
-            argResults['did'],
+            argResults!['signature'],
+            argResults!['did'],
             erc1056: erc1056,
-            toSign: argResults['message'],
+            toSign: argResults!['message'],
           );
           stdout.writeln(result);
         } catch (e) {
@@ -365,8 +365,8 @@ class SignatureCommand extends Command {
       } else {
         try {
           var result = await verifyStringSignature(
-              argResults['signature'], argResults['did'],
-              toSign: argResults['message']);
+              argResults!['signature'], argResults!['did'],
+              toSign: argResults!['message']);
           stdout.writeln(result);
         } catch (e) {
           stderr.writeln(e);
@@ -409,17 +409,17 @@ class VerifyCommand extends Command {
   }
 
   run() async {
-    if (argResults['signedJson'] == null) {
+    if (argResults!['signedJson'] == null) {
       stderr.writeln('Checkable json-object missing');
       exit(2);
     }
 
-    Erc1056 erc1056;
-    if (argResults['erc1056Contract'] != null && argResults['rpcUrl'] != null)
-      erc1056 = Erc1056(argResults['rpcUrl'],
-          contractAddress: argResults['erc1056Contract']);
+    Erc1056? erc1056;
+    if (argResults!['erc1056Contract'] != null && argResults!['rpcUrl'] != null)
+      erc1056 = Erc1056(argResults!['rpcUrl'],
+          contractAddress: argResults!['erc1056Contract']);
 
-    Map<String, dynamic> givenJson = credentialToMap(argResults['signedJson']);
+    Map<String, dynamic> givenJson = credentialToMap(argResults!['signedJson']);
     bool presentation = true;
     if (givenJson.containsKey('type')) {
       if ((givenJson['type'] as List).first == 'VerifiableCredential')
@@ -436,33 +436,33 @@ class VerifyCommand extends Command {
     bool res = true;
     bool compare = true;
     if (presentation) {
-      if (argResults['checkForRevocation'] && erc1056 != null) {
+      if (argResults!['checkForRevocation'] && erc1056 != null) {
         try {
-          res = await verifyPresentation(givenJson, argResults['challenge'],
-              erc1056: erc1056, rpcUrl: argResults['rpcUrl']);
+          res = await verifyPresentation(givenJson, argResults!['challenge'],
+              erc1056: erc1056, rpcUrl: argResults!['rpcUrl']);
         } catch (e) {
           stderr.writeln(e);
           exit(2);
         }
-      } else if (!argResults['checkForRevocation'] && erc1056 != null) {
+      } else if (!argResults!['checkForRevocation'] && erc1056 != null) {
         try {
-          res = await verifyPresentation(givenJson, argResults['challenge'],
+          res = await verifyPresentation(givenJson, argResults!['challenge'],
               erc1056: erc1056);
         } catch (e) {
           stderr.writeln(e);
           exit(2);
         }
-      } else if (argResults['checkForRevocation'] && erc1056 == null) {
+      } else if (argResults!['checkForRevocation'] && erc1056 == null) {
         try {
-          res = await verifyPresentation(givenJson, argResults['challenge'],
-              rpcUrl: argResults['rpcUrl']);
+          res = await verifyPresentation(givenJson, argResults!['challenge'],
+              rpcUrl: argResults!['rpcUrl']);
         } catch (e) {
           stderr.writeln(e);
           exit(2);
         }
       } else {
         try {
-          res = await verifyPresentation(givenJson, argResults['challenge']);
+          res = await verifyPresentation(givenJson, argResults!['challenge']);
         } catch (e) {
           stderr.writeln(e);
           exit(2);
@@ -475,14 +475,14 @@ class VerifyCommand extends Command {
         indexToId[id] = i;
       }
 
-      if (argResults['plaintextCredential'].length > 0) {
-        List<String> plaintextCreds = argResults['plaintextCredential'];
+      if (argResults!['plaintextCredential'].length > 0) {
+        List<String> plaintextCreds = argResults!['plaintextCredential'];
         var id = '';
         plaintextCreds.forEach((plain) {
           try {
             var map = credentialToMap(plain);
             id = map['id'];
-            var idx = indexToId[id];
+            var idx = indexToId[id]!;
             compare =
                 compareW3cCredentialAndPlaintext(credsInPresentation[idx], map);
           } catch (e) {
@@ -492,24 +492,25 @@ class VerifyCommand extends Command {
         });
       }
     } else {
-      if (argResults['checkForRevocation'] && erc1056 != null) {
+      if (argResults!['checkForRevocation'] && erc1056 != null) {
         try {
           res = await verifyCredential(givenJson,
-              erc1056: erc1056, rpcUrl: argResults['rpcUrl']);
+              erc1056: erc1056, rpcUrl: argResults!['rpcUrl']);
         } catch (e) {
           stderr.writeln(e);
           exit(2);
         }
-      } else if (!argResults['checkForRevocation'] && erc1056 != null) {
+      } else if (!argResults!['checkForRevocation'] && erc1056 != null) {
         try {
           res = await verifyCredential(givenJson, erc1056: erc1056);
         } catch (e) {
           stderr.writeln(e);
           exit(2);
         }
-      } else if (argResults['checkForRevocation'] && erc1056 == null) {
+      } else if (argResults!['checkForRevocation'] && erc1056 == null) {
         try {
-          res = await verifyCredential(givenJson, rpcUrl: argResults['rpcUrl']);
+          res =
+              await verifyCredential(givenJson, rpcUrl: argResults!['rpcUrl']);
         } catch (e) {
           stderr.writeln(e);
           exit(2);
@@ -523,17 +524,17 @@ class VerifyCommand extends Command {
         }
       }
 
-      if (argResults['plaintextCredential'].length > 0) {
+      if (argResults!['plaintextCredential'].length > 0) {
         try {
           compare = compareW3cCredentialAndPlaintext(
-              givenJson, argResults['plaintextCredential'][0]);
+              givenJson, argResults!['plaintextCredential'][0]);
         } catch (e) {
           stderr.writeln(e);
         }
       }
     }
     stdout.writeln('Signature Check: $res');
-    if (argResults['plaintextCredential'].length > 0)
+    if (argResults!['plaintextCredential'].length > 0)
       stdout.writeln('Comparision: $compare');
     if (res && compare)
       exit(0);
