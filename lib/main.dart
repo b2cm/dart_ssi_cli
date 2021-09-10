@@ -114,9 +114,9 @@ class RevocationCommand extends Command {
         privKey = wallet.getStandardIssuerPrivateKey();
       }
     } else {
-      privKey = wallet.getPrivateKeyToCredentialDid(argResults!['did']);
+      privKey = wallet.getPrivateKeyForCredentialDid(argResults!['did']);
       if (privKey == null) {
-        privKey = wallet.getPrivateKeyToConnectionDid(argResults!['did']);
+        privKey = wallet.getPrivateKeyForConnectionDid(argResults!['did']);
       }
     }
 
@@ -186,9 +186,9 @@ class Erc1056Command extends Command {
           throw Exception('Wallet-Password missing');
         var wallet = WalletStore(argResults!['wallet']);
         await wallet.openBoxes(argResults!['password']);
-        var privKey = wallet.getPrivateKeyToCredentialDid(argResults!['did']);
+        var privKey = wallet.getPrivateKeyForCredentialDid(argResults!['did']);
         if (privKey == null) {
-          privKey = wallet.getPrivateKeyToConnectionDid(argResults!['did']);
+          privKey = wallet.getPrivateKeyForConnectionDid(argResults!['did']);
         }
         if (privKey == null) {
           throw Exception('Could not find a private Key to the given did');
@@ -322,10 +322,12 @@ class SignatureCommand extends Command {
         await wallet.openBoxes(argResults!['password']);
         var sig;
         if (argResults!['jwsHeader'] == null)
-          sig = signString(wallet, argResults!['did'], argResults!['message'],
+          sig = signStringOrJson(
+              wallet, argResults!['did'], argResults!['message'],
               detached: argResults!['detached']);
         else
-          sig = signString(wallet, argResults!['did'], argResults!['message'],
+          sig = signStringOrJson(
+              wallet, argResults!['did'], argResults!['message'],
               jwsHeader: argResults!['jwsHeader'],
               detached: argResults!['detached']);
         stdout.writeln(sig);
