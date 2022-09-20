@@ -1,26 +1,46 @@
 import 'dart:io';
 
-import 'package:args/command_runner.dart';
 import 'package:dart_ssi/wallet.dart';
+import 'package:ssi_cli/src/commands/wallet/connections/wallet_connections_command.dart';
 
-class WalletCommand extends Command {
-  final name = 'wallet';
-  final description = 'Interacting with a ssi-wallet';
+import '../../constants.dart';
+import '../ssi_cli_base.dart';
+import 'issuer/wallet_issuer_command.dart';
+import 'wallet_init_command.dart';
+
+class WalletCommand extends SsiCliCommandBase {
+  final name = COMMAND_WALLET;
+  final description = "Interacting with a ssi-wallet";
 
   WalletCommand() {
     argParser
-      ..addFlag('init', abbr: 'i', help: 'Initialize a new wallet')
-      ..addOption('directory',
-          abbr: 'd',
-          help: 'Directory in Filesystem to store Wallet-Files',
-          defaultsTo: 'ssi_wallet')
-      ..addOption('password',
-          abbr: 'p', help: 'Password the wallet is secured with')
-      ..addFlag('generateConnectionDid',
+      ..addOption(PARAM_PASSWORD,
+          help: "Password the wallet is secured with",
+          mandatory: true)
+
+      ..addOption(PARAM_DATA_DIR,
+          help: "Directory in Filesystem to store Wallet-Files. "
+                "Will be the current directory if not given. "
+                "The Directory MUST exist (will not be created)",
+          defaultsTo: Directory.current.path)
+
+      ..addOption(PARAM_WALLET_NAME,
+          help: "Name of the wallet", defaultsTo: "default-wallet")
+    ;
+      addSubcommand(WalletInitCommand());
+      addSubcommand(WalletConnectionsCommand());
+      addSubcommand(WalletIssuerCommand());
+
+      /*
+      ..addFlag(
           abbr: 'c', help: 'generates a new DID for a Connection')
-      ..addOption('mnemonic',
+
+      //..addOption('mnemonic',
           abbr: 'm', help: 'restore a wallet with that mnemonic')
-      ..addFlag('list', abbr: 'l', help: 'list all connections');
+
+      //..addFlag('list', abbr: 'l', help: 'list all connections')
+      */
+
   }
 
   run() async {
