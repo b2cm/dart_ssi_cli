@@ -19,8 +19,8 @@ class WalletInitIssuerConnectionCommand extends SsiCliCommandBase {
     argParser
       ..addOption(PARAM_KEY_TYPE,
           help: "Key Type for Issuing.",
-          allowed: supportedIssuerKeyTypes(),
-          defaultsTo: supportedIssuerKeyTypes()[0]
+          allowed: getSupportedIssuerKeyTypesAsString(),
+          defaultsTo: getSupportedIssuerKeyTypesAsString()[0]
       );
   }
 

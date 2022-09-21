@@ -7,13 +7,17 @@ import 'package:ssi_cli/src/exceptions/wallet_service_exception.dart';
 /// if [password] is given, it will be used to secure the wallet
 /// if [mnemonic] is given, it will be used to restore the wallet
 /// if no [mnemonic] is given, a new one will be generated
+/// if [initIssuers] is true all default-issuers will be auto-generated (on for
+/// each issuer in [getSupportedIssuerKeyTypes])
 ///
-/// returns the mnemonic of the wallet (maybe generated or your passed-in one)
+/// returns the mnemonic of the wallet (randomly generated or your passed-in one)
 Future<String> initWallet({
   required Directory path,
   String? mnemonic,
   String? password,
   network = 'mainnet',
+  initIssuers = true,
+  silent = false,
 }) async {
   if (path.existsSync() && path.listSync(recursive: false).isNotEmpty) {
       throw WalletServiceException("Directory at `$path` exists already and is "
@@ -22,9 +26,21 @@ Future<String> initWallet({
     }
 
     var wallet = await loadAndOpenWallet(path: path, password: password);
+    if (!silent) print("✅ Opened Wallet");
     var mne = (await wallet.initialize(mnemonic: mnemonic, network: network))!;
-    await wallet.closeBoxes();
+    if(!silent) print("✅ Initialized Stores");
 
+    if (initIssuers) {
+      // I do not know why the boxes are closed here, but they are -> reopen
+      await wallet.openBoxes(password);
+      for (var keyType in getSupportedIssuerKeyTypes()) {
+        await wallet.initializeIssuer(keyType);
+        if(!silent) print("✅ Initialized issuer for key type "
+            "`${keyTypeToString(keyType)}`");
+      }
+    }
+
+    await wallet.closeBoxes();
     return mne;
   }
 
@@ -47,23 +63,39 @@ Future<WalletStore> loadAndOpenWallet({
   }
 }
 
-/// Gets all Key Types which are supported by the SSI wallet as string
-List<String> getSupportedKeyTypes() {
-  return KeyType.values.map((e) => e.toString().split('.').last.toLowerCase()).toList();
-}
 
 /// transform a Key Type String to a Wallet Native presentation
 ///
 /// throws a [WalletServiceException] if the key type is not supported
 KeyType keyTypeFromString(String keyType) {
   try {
-    return KeyType.values.firstWhere((e) => e.toString().split('.').last.toLowerCase() == keyType);
+    return KeyType.values.firstWhere((e) => keyTypeToString(e) == keyType);
   } catch (e) {
     throw WalletServiceException("Unknown key type `$keyType`", code: 87348923);
   }
 }
 
+/// String representation of a [KeyType]
+String keyTypeToString(KeyType keyType) {
+  return keyType.toString().split('.').last.toLowerCase();
+}
+
 /// Key types supported by the SSI wallet for issuing
-List<String> supportedIssuerKeyTypes() {
-  return const ['secp256k1', 'ed25519'];
+List<KeyType> getSupportedIssuerKeyTypes() {
+  return const [KeyType.secp256k1, KeyType.ed25519];
+}
+
+/// shorthand around [getSupportedIssuerKeyTypes]
+List<String> getSupportedIssuerKeyTypesAsString() {
+  return getSupportedIssuerKeyTypes().map((e) => keyTypeToString(e)).toList();
+}
+
+/// Gets all Key Types which are supported by the SSI wallet
+Iterable<KeyType> getSupportedWalletKeyTypes() {
+  return KeyType.values;
+}
+
+/// Shorthand around [getSupportedWalletKeyTypes]
+List<String> getSupportedWalletKeyTypesAsString() {
+  return getSupportedWalletKeyTypes().map((kt) => keyTypeToString(kt)).toList();
 }

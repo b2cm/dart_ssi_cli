@@ -8,7 +8,6 @@ import 'package:ssi_cli/src/exceptions/wallet_service_exception.dart';
 import 'package:ssi_cli/src/services/wallet_service.dart';
 import 'package:ssi_cli/src/utils/path_utils.dart';
 import 'package:uuid/uuid.dart';
-import 'package:args/args.dart';
 import '../utils/did_utils.dart';
 
 /// Wrapper around Commands
@@ -241,7 +240,7 @@ abstract class SsiCliCommandBase extends Command {
       return keyTypeFromString(keyType);
     } catch (e) {
       writeError("Invalid key type `$keyType`. "
-          "Only ${getSupportedKeyTypes().join(', ')} are supported", 239847238,
+          "Only ${getSupportedWalletKeyTypes().join(', ')} are supported", 239847238,
           terminate: true);
     }
 
