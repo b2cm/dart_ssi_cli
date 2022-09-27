@@ -35,7 +35,7 @@ Future<String> initWallet({
       await wallet.openBoxes(password);
       for (var keyType in getSupportedIssuerKeyTypes()) {
         await wallet.initializeIssuer(keyType);
-        if(!silent) print("✅ Initialized issuer for key type "
+        if(!silent) print("✅ Initialized Issuer for Key Type "
             "`${keyTypeToString(keyType)}`");
       }
     }
@@ -57,45 +57,58 @@ Future<WalletStore> loadAndOpenWallet({
               "sure the directory the password are correct.", code: 2348239);
     }
     return wallet;
-  } catch (e) {
-    throw WalletServiceException("Could not open wallet at `$path`. Details: $e",
+  } on Exception catch (e) {
+    throw WalletServiceException("Could not open wallet at `$path`",
+        baseException: e,
         code: 4238293048);
   }
 }
 
 
-/// transform a Key Type String to a Wallet Native presentation
+/// Transforms a Key Type String to a Wallet Native presentation.
 ///
 /// throws a [WalletServiceException] if the key type is not supported
 KeyType keyTypeFromString(String keyType) {
   try {
     return KeyType.values.firstWhere((e) => keyTypeToString(e) == keyType);
-  } catch (e) {
-    throw WalletServiceException("Unknown key type `$keyType`", code: 87348923);
+  } on Exception catch (e) {
+    throw WalletServiceException("Unknown key type `$keyType`", code: 87348923,
+        baseException: e);
   }
 }
 
-/// String representation of a [KeyType]
+/// String representation of a [KeyType].
 String keyTypeToString(KeyType keyType) {
   return keyType.toString().split('.').last.toLowerCase();
 }
 
-/// Key types supported by the SSI wallet for issuing
+/// Key types supported by the SSI wallet for issuing.
 List<KeyType> getSupportedIssuerKeyTypes() {
   return const [KeyType.secp256k1, KeyType.ed25519];
 }
 
-/// shorthand around [getSupportedIssuerKeyTypes]
+/// Shorthand around [getSupportedIssuerKeyTypes].
 List<String> getSupportedIssuerKeyTypesAsString() {
   return getSupportedIssuerKeyTypes().map((e) => keyTypeToString(e)).toList();
 }
 
-/// Gets all Key Types which are supported by the SSI wallet
+/// Key types supported by the SSI wallet for storing credentials.
+List<KeyType> getSupportedCredentialKeyTypes() {
+  return const [KeyType.secp256k1, KeyType.ed25519];
+}
+
+/// Shorthand around [getSupportedCredentialKeyTypes].
+List<String> getSupportedCredentialTypesAsString() {
+  return getSupportedCredentialKeyTypes().map(
+          (e) => keyTypeToString(e)).toList();
+}
+
+/// Gets all Key Types which are supported by the SSI wallet.
 Iterable<KeyType> getSupportedWalletKeyTypes() {
   return KeyType.values;
 }
 
-/// Shorthand around [getSupportedWalletKeyTypes]
+/// Shorthand around [getSupportedWalletKeyTypes].
 List<String> getSupportedWalletKeyTypesAsString() {
   return getSupportedWalletKeyTypes().map((kt) => keyTypeToString(kt)).toList();
 }

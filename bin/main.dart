@@ -3,7 +3,7 @@ import 'package:args/command_runner.dart';
 import '../lib/commands.dart';
 
 void main(List<String> args) {
-  CommandRunner('main', 'SSI Wallet Agent')
+  CommandRunner('ssi-wallet.exe', 'SSI Wallet Agent')
     /*..addCommand(VerifyCommand())
     ..addCommand(SignatureCommand())
     ..addCommand(Erc1056Command())

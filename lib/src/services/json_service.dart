@@ -46,16 +46,15 @@ dynamic getByPath(Json json, JsonPath path) {
       }
       current = current[part];
     } else if (part.runtimeType == String) {
-      try {
-        // check if the thing is map-able
-        // note that jsonDecode returns a _InternalLinkedHashMap
-        // which for whatever reason is not a Map, so we cannot just check it
+
+      // check if the thing is map-able
+      // note that jsonDecode returns a _InternalLinkedHashMap
+      // which for whatever reason is not a Map, so we cannot just check it
+      if (current.containsKey(part)) {
         current = current[part];
-      } catch (e) {
+      } else {
         throw JsonPathException(
-          'Expected element at `${currentPath.prettyPrint()}` '
-              'but was not found',
-            code: 24234235);
+            'Element `${currentPath.prettyPrint()}` was not found', code: 429348534);
       }
     } else { // invalid path segment
       throw JsonPathException('Path at ${currentPath.prettyPrint()} '
@@ -71,6 +70,9 @@ dynamic getByPath(Json json, JsonPath path) {
 /// it is not already.
 /// @hint this is an inplace operation!
 forceAsList(Json json, JsonPath path) {
+  if (path.isEmpty) {
+    throw JsonPathException('Path must not be empty', code: 2349888823);
+  }
   var value = getByPath(json, path);
   var parent = getByPath(json, path.sublist(0, path.length - 1));
   var key = path.last;

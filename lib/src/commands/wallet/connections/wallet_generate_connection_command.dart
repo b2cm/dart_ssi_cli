@@ -23,7 +23,7 @@ class WalletGenerateConnectionCommand extends SsiCliCommandBase {
 
   @override
   run() async {
-    var wallet = await loadWallet();
+    var wallet = await loadWalletFromArgs();
     var did = await wallet.getNextConnectionDID(getArgKeyType());
     writeResult(did);
   } 

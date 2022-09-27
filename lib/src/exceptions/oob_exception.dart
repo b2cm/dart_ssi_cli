@@ -1,4 +1,3 @@
-
 import 'cli_exception.dart';
 
 /// Raised when something related to Oob goes south

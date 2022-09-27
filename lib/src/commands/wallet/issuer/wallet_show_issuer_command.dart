@@ -27,7 +27,7 @@ class WalletShowIssuerCommand extends SsiCliCommandBase {
 
   @override
   run() async {
-    var wallet = await loadWallet();
+    var wallet = await loadWalletFromArgs();
     var keyType = getArgKeyType();
     var issuer = await wallet.getStandardIssuerDid(keyType);
     await wallet.closeBoxes();

@@ -26,7 +26,7 @@ class WalletInitIssuerConnectionCommand extends SsiCliCommandBase {
 
   @override
   run() async {
-    var wallet = await loadWallet();
+    var wallet = await loadWalletFromArgs();
     var keyType = getArgKeyType();
     var issuer = await wallet.initializeIssuer(keyType);
     await wallet.closeBoxes();

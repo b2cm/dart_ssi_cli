@@ -1,9 +1,11 @@
 import 'package:dart_ssi/credentials.dart';
 import 'package:dart_ssi/didcomm.dart';
+import 'package:dart_ssi/wallet.dart';
 import 'package:ssi_cli/src/exceptions/json_exceptions.dart';
 import 'package:ssi_cli/src/services/json_service.dart';
 
-import '../exceptions/oob_exception.dart';
+import '../../definitions.dart';
+import '../../exceptions/oob_exception.dart';
 
 /// offers a credential using oob
 ///
@@ -42,12 +44,10 @@ OutOfBandMessage oobOfferCredential({
         code: 34583495834);
   }
 
-
-  // @TODO why that?
-  // if (!credential.containsKey('id')) {
-  //  credential['id'] = 'did:key:000';
-  // }
-
+  /// @TODO why that?
+  if (!credential.containsKey('id')) {
+    credential['id'] = 'did:key:000';
+  }
   var vc = VerifiableCredential(
       context: (credential.remove('@context') as List).cast<String>(),
       type: ['VerifiableCredential', ...credential.remove('type')],
@@ -65,6 +65,47 @@ OutOfBandMessage oobOfferCredential({
       id: oobId,
       threadId: threadId,
       from: connectionDid,
-      replyTo:replyTo,
+      replyTo: replyTo,
       attachments: [Attachment(data: AttachmentData(json: offer.toJson()))]);
+}
+
+/// Resolves the attachments and returns them as PlainTextMessages
+/// Each message is tried to be resolved. An error is reported for each message
+/// if it could not be resolved or parsed.
+Future<List<Result<DidcommPlaintextMessage, String>>> getPlaintextFromOobAttachments(
+    OutOfBandMessage message) async {
+
+  List<Result<DidcommPlaintextMessage, String>> res = [];
+  if (message.attachments!.isNotEmpty) {
+    for (var a in message.attachments!) {
+      bool isOk = true;
+      if (a.data.json == null) {
+        try {
+          await a.data.resolveData();
+        } catch (e) {
+          res.add(Result.Error(
+              "Could not resolve attachment due to `${e.toString()}` "
+                  "(Code: 348923084)"));
+          isOk = false;
+        }
+      }
+
+      if (isOk) {
+        try {
+          var plain = DidcommPlaintextMessage.fromJson(
+            a.data.json!);
+            plain.from ??= message.from;
+            res.add(Result.Ok(plain));
+        } catch (e) {
+          res.add(Result.Error(
+              "Could not parse message from OOB "
+              "attachment due to `${e.toString()}` "
+                  "(Code: 4853094)"));
+        }
+      }
+    }
+
+  }
+
+  return res;
 }

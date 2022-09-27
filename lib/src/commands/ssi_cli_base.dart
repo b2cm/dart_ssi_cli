@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:args/command_runner.dart';
+import 'package:dart_ssi/util.dart';
 import 'package:dart_ssi/wallet.dart';
 import 'package:ssi_cli/src/constants.dart';
 import 'package:ssi_cli/src/exceptions/wallet_service_exception.dart';
@@ -51,6 +52,11 @@ abstract class SsiCliCommandBase extends Command {
   /// just a normal Output to stdout
   writeMessage(String message) {
     stdout.writeln(message);
+  }
+
+  /// just checks for occurrence of a parameter
+  bool getArgFlag(String name) {
+    return _getArgValue(name, checkParent: true);
   }
 
   /// tries to get a argument as String
@@ -124,10 +130,16 @@ abstract class SsiCliCommandBase extends Command {
     try {
       return jsonDecode(arg) as Map<String, dynamic>;
     } catch (e) {
-      writeError(
-          "Argument `$name` must be a valid json string, however `$arg` is not",
-          394853490);
+      try {
+        String decoded = utf8.decode(base64Decode(addPaddingToBase64(arg)));
+        return jsonDecode(decoded) as Map<String, dynamic>;
+      } catch (e) {
+        writeError(
+            "Argument `$name` must be a valid json string or a base64-decoded "
+                "representation thereof, however `$arg` is not",  394853490);
+      }
     }
+
   }
 
   /// gets an argument as directory, optionally checks if it exists
@@ -200,7 +212,7 @@ abstract class SsiCliCommandBase extends Command {
     dataDirMustExist = true,
     effectivePathMustExist = true}) {
 
-    Directory base = getArgDirectory(PARAM_DATA_DIR,
+    Directory base = getArgDirectory(PARAM_WALLET_DATA_DIR,
         mustExist: dataDirMustExist)!;
 
     String walletName = getArgString(PARAM_WALLET_NAME, isOptional: false,
@@ -214,17 +226,19 @@ abstract class SsiCliCommandBase extends Command {
     return effectivePath;
   }
 
-  Future<WalletStore> loadWallet() async {
+  /// tries opening the wallet as specified by parameters
+  /// @see  [addWalletNecessaryParametersToArgParser] for details
+  Future<WalletStore> loadWalletFromArgs() async {
     var path = getEffectiveWalletDir(dataDirMustExist: true,
         effectivePathMustExist: true);
 
-    var password = getArgString(PARAM_PASSWORD, isOptional: false,
+    var password = getArgString(PARAM_WALLET_PASSWORD, isOptional: false,
         nonEmpty: true)!;
 
     try {
       return loadAndOpenWallet(path: path, password: password);
     } on WalletServiceException catch (e) {
-      writeError("Couldn't open wallet due to `${e.message} (Code: ${e.code}",
+      writeError("Couldn't open wallet due to ${e.toString()}",
           349823904, terminate: true);
     }
     // unreachable

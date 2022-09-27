@@ -1,5 +1,5 @@
 import 'package:ssi_cli/src/constants.dart';
-import 'package:ssi_cli/src/services/oob_service.dart';
+import 'package:ssi_cli/src/services/didcomm/oob_service.dart';
 import 'package:uuid/uuid.dart';
 
 import '../ssi_cli_base.dart';
@@ -18,7 +18,7 @@ class DidCommOObCommand extends SsiCliCommandBase {
       ..addOption(PARAM_THREAD_ID,
         valueHelp: '"${Uuid().v4().toString()}"',
         help: "UUID: thread id of the message. If not provided, "
-            "a new one will be generated.",
+              "a new one will be generated.",
         mandatory: false,
       )
 
@@ -31,8 +31,7 @@ class DidCommOObCommand extends SsiCliCommandBase {
 
     ..addOption(PARAM_ISSUER_DID,
         valueHelp: '"did:ethr:0xF1..."',
-        help: "UUID: oob id id of the message. If not provided, "
-              "a new one will be generated.",
+        help: "UUID: issuer did id of the message.",
         mandatory: true)
 
     ..addOption(
@@ -43,8 +42,9 @@ class DidCommOObCommand extends SsiCliCommandBase {
 
     ..addMultiOption(PARAM_REPLY_TO,
         help: "endpoint(s) the response should be send to",
-        valueHelp: '"https://example.com/didcomm"',
-        // mandatory: true, <-- @TODO not supported. -->  Request to https://pub.dev/documentation/args/?
+        valueHelp: '"https://example.com/didcomm/receive"',
+        // mandatory: true, <-- @TODO not supported.
+        //  -->  Request to https://pub.dev/documentation/args/ ?
     )
 
     ..addOption(PARAM_CONNECTION_DID,
@@ -60,7 +60,7 @@ class DidCommOObCommand extends SsiCliCommandBase {
     String oobId = getArgUuid(PARAM_OOB_ID,
         orElse: Uuid().v4().toString())!;
     var offerCredential = getArgJson(PARAM_OFFER_CREDENTIAL,
-        isOptional: true);
+        isOptional: false);
     var issuerDid = getArgDid(PARAM_ISSUER_DID, isOptional: false);
     var replyTo = getArgList<String>(PARAM_REPLY_TO, isOptional: false)!;
     var connectionDid = getArgDid(PARAM_CONNECTION_DID, isOptional: false)!;
@@ -74,7 +74,7 @@ class DidCommOObCommand extends SsiCliCommandBase {
           threadId: threadId,
           connectionDid: connectionDid
       );
-      writeResult(cred.toJson().toString());
+      writeResultJson(cred.toJson());
     }
 
     writeError("No operation given for `$name` command", 543958349853490);

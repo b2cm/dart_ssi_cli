@@ -17,19 +17,25 @@ class WalletInitCommand extends SsiCliCommandBase {
       ..addOption(PARAM_MNEMONIC,
           help: "Mnemonic to restore a wallet from. If not given, "
                 "a new one will be generated",
-          mandatory: false);
+          mandatory: false)
+        ..addFlag(PARAM_INIT_ISSUERS,
+            help: "Initialize issuers for all supported key types",
+            defaultsTo: true,
+        );
   }
 
   @override
   run() async {
     String? mnemonic = getArgString(PARAM_MNEMONIC, isOptional: true);
 
-    String password = getArgString(PARAM_PASSWORD,
+    String password = getArgString(PARAM_WALLET_PASSWORD,
         isOptional: false,
         nonEmpty: true)!;
 
     Directory effectivePath = getEffectiveWalletDir(dataDirMustExist: true,
         effectivePathMustExist: false);
+
+    bool initIssuers = getArgFlag(PARAM_INIT_ISSUERS);
 
     // create an empty directory if it does not exist (parent should exist here)
     // will just raise if someone deleted the directory meanwhile (we do not
@@ -43,6 +49,7 @@ class WalletInitCommand extends SsiCliCommandBase {
         path: effectivePath,
         mnemonic: mnemonic,
         password: password,
+        initIssuers: initIssuers,
       );
       writeResult("Created a new wallet at `$effectivePath` "
           "with mnemonic:\n --> `$mnemonic` <-- \n"
@@ -52,7 +59,7 @@ class WalletInitCommand extends SsiCliCommandBase {
           "⚠️ Everyone in control of the mnemomic may impersonate you.\n"
           "⚠️ The wallet itself is secured by your provided password.");
     } on WalletServiceException catch (e) {
-      writeError(e.message, e.code);
+      writeError(e.toString(), 4322323645);
     }finally {
     }
   }

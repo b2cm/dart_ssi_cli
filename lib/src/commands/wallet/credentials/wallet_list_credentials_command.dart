@@ -2,21 +2,21 @@ import 'package:ssi_cli/src/commands/ssi_cli_base.dart';
 import 'package:ssi_cli/src/constants.dart';
 
 /// emit a new connection DID
-class WalletListConnectionsCommand extends SsiCliCommandBase {
+class WalletListCredentialsCommand extends SsiCliCommandBase {
   @override
-  final name = COMMAND_WALLET_CONNECTIONS_LIST;
+  final name = COMMAND_WALLET_CREDENTIALS_LIST;
 
   @override
-  final description = "List Connections";
+  final description = "List Credentials";
 
-  WalletListConnectionsCommand() { }
+  WalletListCredentialsCommand() { }
 
   @override
   run() async {
     var wallet = await loadWalletFromArgs();
-    var conns = await wallet.getAllConnections();
+    var creds = await wallet.getAllCredentials();
     await wallet.closeBoxes();
 
-    writeResultJson(conns);
+    writeResultJson(creds);
   }
 }
