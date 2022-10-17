@@ -18,22 +18,22 @@ import '../../exceptions/oob_exception.dart';
 /// }
 /// ```
 OutOfBandMessage oobOfferCredential({
-    required Map<String, dynamic> credential,
-    required String oobId,
-    required String threadId,
-    required List<String> replyTo,
-    required String issuerDid,
-    required String connectionDid,
-    String proofType = 'Ed25519Signature',
-    }) {
+  required Map<String, dynamic> credential,
+  required String oobId,
+  required String threadId,
+  required List<String> replyTo,
+  required String issuerDid,
+  required String connectionDid,
+  String proofType = 'Ed25519Signature',
+}) {
 
   try {
     addElementToListOrInit(credential, ['@context'],
         'https://www.w3.org/2018/credentials/v1');
   } on JsonPathException catch (e) {
-     throw OobTemplateWrongValueException('The @context field is invalid.\n'
-         'Details: $e',
-         code: 234234543);
+    throw OobTemplateWrongValueException('The @context field is invalid.\n'
+        'Details: $e',
+        code: 234234543);
   }
 
   try {
@@ -61,7 +61,7 @@ OutOfBandMessage oobOfferCredential({
         options: LdProofVcDetailOptions(proofType: proofType))
   ], replyTo: replyTo);
 
-   return OutOfBandMessage(
+  return OutOfBandMessage(
       id: oobId,
       threadId: threadId,
       from: connectionDid,
@@ -72,8 +72,9 @@ OutOfBandMessage oobOfferCredential({
 /// Resolves the attachments and returns them as PlainTextMessages
 /// Each message is tried to be resolved. An error is reported for each message
 /// if it could not be resolved or parsed.
-Future<List<Result<DidcommPlaintextMessage, String>>> getPlaintextFromOobAttachments(
-    OutOfBandMessage message) async {
+Future<List<Result<DidcommPlaintextMessage, String>>>
+  getPlaintextFromOobAttachments(OutOfBandMessage message,
+    {DidcommMessages? expectedAttachment}) async {
 
   List<Result<DidcommPlaintextMessage, String>> res = [];
   if (message.attachments!.isNotEmpty) {
@@ -85,7 +86,8 @@ Future<List<Result<DidcommPlaintextMessage, String>>> getPlaintextFromOobAttachm
         } catch (e) {
           res.add(Result.Error(
               "Could not resolve attachment due to `${e.toString()}` "
-                  "(Code: 348923084)"));
+              "(Code: 348923084)")
+          );
           isOk = false;
         }
       }
@@ -93,18 +95,32 @@ Future<List<Result<DidcommPlaintextMessage, String>>> getPlaintextFromOobAttachm
       if (isOk) {
         try {
           var plain = DidcommPlaintextMessage.fromJson(
-            a.data.json!);
-            plain.from ??= message.from;
-            res.add(Result.Ok(plain));
+              a.data.json!);
+          plain.from ??= message.from;
+          res.add(Result.Ok(plain));
         } catch (e) {
           res.add(Result.Error(
               "Could not parse message from OOB "
               "attachment due to `${e.toString()}` "
-                  "(Code: 4853094)"));
+              "(Code: 4853094)"));
         }
       }
     }
 
+  }
+
+  // filter by type (optionally)
+  if (expectedAttachment != null) {
+    for (var i = 0; i < res.length; i++) {
+      if (res[i].isOk) {
+        DidcommPlaintextMessage r = res[i].unrwap();
+        if (r.type != expectedAttachment.value) {
+          res[i] = Result.Error(
+              "Attachment is of type `${r.type}` but expected "
+              "`$expectedAttachment` (Code: 3583457348)");
+        }
+      }
+    }
   }
 
   return res;

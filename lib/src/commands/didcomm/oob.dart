@@ -1,4 +1,6 @@
 import 'package:ssi_cli/src/constants.dart';
+import 'package:ssi_cli/src/services/cli_service.dart';
+import 'package:ssi_cli/src/services/didcomm/didcomm_service.dart';
 import 'package:ssi_cli/src/services/didcomm/oob_service.dart';
 import 'package:uuid/uuid.dart';
 
@@ -14,6 +16,8 @@ class DidCommOObCommand extends SsiCliCommandBase {
   final description = "Out of Band (OOB) messages";
 
   DidCommOObCommand() {
+    addWalletNecessaryParametersToArgParser(argParser, isMandatory: true);
+
     argParser
       ..addOption(PARAM_THREAD_ID,
         valueHelp: '"${Uuid().v4().toString()}"',
@@ -50,7 +54,13 @@ class DidCommOObCommand extends SsiCliCommandBase {
     ..addOption(PARAM_CONNECTION_DID,
         valueHelp: '"did:ethr:0xF1..."',
         help: "UUID: Connection DID for oob message",
-        mandatory: true);
+        mandatory: true)
+
+    ..addFlag(PARAM_ENCRYPT_MESSAGE,
+        help: "If not set, the received message will be returned unencrypted.",
+    )
+
+    ;
   }
 
   @override
@@ -64,7 +74,23 @@ class DidCommOObCommand extends SsiCliCommandBase {
     var issuerDid = getArgDid(PARAM_ISSUER_DID, isOptional: false);
     var replyTo = getArgList<String>(PARAM_REPLY_TO, isOptional: false)!;
     var connectionDid = getArgDid(PARAM_CONNECTION_DID, isOptional: false)!;
+    var encrypt = getArgFlag(PARAM_ENCRYPT_MESSAGE);
+    var walletName = getArgString(PARAM_WALLET_NAME);
+    var wallet = await loadWalletFromArgs();
 
+    // Check if stuff is controlled by the wallet
+    if (!wallet
+        .getAllConnections()
+        .keys
+        .contains(connectionDid)) {
+      writeError(
+          "Connection DID `$connectionDid` "
+              "not found in wallet `$walletName`",
+          23423094
+      );
+    }
+
+    // encryption needs a connection did set
     if (offerCredential != null) {
       var cred = oobOfferCredential(
           credential: offerCredential,
@@ -74,9 +100,21 @@ class DidCommOObCommand extends SsiCliCommandBase {
           threadId: threadId,
           connectionDid: connectionDid
       );
-      writeResultJson(cred.toJson());
-    }
 
-    writeError("No operation given for `$name` command", 543958349853490);
+       if (encrypt) {
+
+          var msg = await encryptMessage(
+              connectionDid: connectionDid,
+              message: cred,
+              wallet: wallet,
+              receiverDid: cred.from!
+          );
+          writeResultJson(msg.toJson());
+        }
+        writeResultJson(cred.toJson());
+      }
+
+    writeError("No operation given for `$name` command", 353456196);
+
   }
 }

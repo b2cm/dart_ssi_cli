@@ -1,6 +1,7 @@
 const String COMMAND_DIDCOMM = 'didcomm';
 const String COMMAND_DIDCOMM_OOB = 'oob';
 const String COMMAND_DIDCOMM_PROPOSE_CREDENTIAL = 'propose-credential';
+const String COMMAND_DIDCOMM_REQUEST_CREDENTIAL = 'request-credential';
 const String COMMAND_DIDCOMM_RECEIVE = 'receive';
 const String COMMAND_DIDCOMM_DECRYPT = 'decrypt';
 const String COMMAND_WALLET = 'wallet';
@@ -21,11 +22,14 @@ const String COMMAND_WALLET_SHOW_ISSUER = 'show';
 const String PARAM_THREAD_ID = 'thread-id';
 const String PARAM_OOB_ID = 'request-id';
 const String PARAM_OFFER_CREDENTIAL = 'offer-credential';
+const String PARAM_OFFER_CREDENTIAL_MESSAGE = 'offer-credential-message';
+const String PARAM_REQUEST_CREDENTIAL_MESSAGE = 'request-credential-message';
 const String PARAM_ISSUER_DID = 'issuer-did';
 const String PARAM_REPLY_TO = 'reply-to';
 const String PARAM_REPLY_URL = 'reply-url';
 const String PARAM_CONNECTION_DID = 'connection-did';
 const String PARAM_CREDENTIAL_DID = 'credential-did';
+const String PARAM_ENCRYPT_MESSAGE = 'encrypt';
 
 const String PARAM_MNEMONIC = 'mnemonic';
 const String PARAM_INIT_ISSUERS = 'init-issuers';

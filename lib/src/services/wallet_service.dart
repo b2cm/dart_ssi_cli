@@ -42,7 +42,8 @@ Future<String> initWallet({
 
     await wallet.closeBoxes();
     return mne;
-  }
+}
+
 
 Future<WalletStore> loadAndOpenWallet({
     required Directory path,

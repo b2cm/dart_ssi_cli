@@ -16,11 +16,16 @@ class DidCommDecryptMessageCommand extends SsiCliCommandBase {
   final description =
       "Didcomm endpoint (only supporting encrypted messages atm)";
 
-  DidCommOObCommand() {
+  DidCommDecryptMessageCommand() {
     addWalletNecessaryParametersToArgParser(argParser)
         .addOption(PARAM_DIDCOMM_ENCRYPTED_MESSAGE,
           help: "JSON: Encrypted Didcomm message.",
           mandatory: true);
+
+    /*argParser
+        ..addOption(PARAM_DIDCOMM_ENCRYPTED_MESSAGE,
+          help: "JSON: Encrypted Didcomm message (may be base64 encoded).",
+          mandatory: true);*/
 
   }
 

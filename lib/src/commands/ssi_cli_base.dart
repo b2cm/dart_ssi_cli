@@ -111,6 +111,7 @@ abstract class SsiCliCommandBase extends Command {
   }
 
   /// tries to parse argument as json
+  /// will also accept base64 encoded values
   /// if [isOptional] is true, null will be returned if the argument is not present
   /// if [isOptional] is false, an error will be written and the value is not
   /// a JSON, an error is is written to stderr and the program will exit
@@ -135,7 +136,7 @@ abstract class SsiCliCommandBase extends Command {
         return jsonDecode(decoded) as Map<String, dynamic>;
       } catch (e) {
         writeError(
-            "Argument `$name` must be a valid json string or a base64-decoded "
+            "Argument `$name` must be a valid json string or a base64-encoded "
                 "representation thereof, however `$arg` is not",  394853490);
       }
     }
@@ -182,7 +183,7 @@ abstract class SsiCliCommandBase extends Command {
     return arg;
   }
 
-
+  /// reads an argument as a a list of [T]s
   List<T>? getArgList<T>(String name, {List<T>? orElse, isOptional = false}) {
     var arg = _getArgValue(name);
 
@@ -191,7 +192,8 @@ abstract class SsiCliCommandBase extends Command {
       if (orElse != null || isOptional) {
         return orElse;
       }
-      writeError("Missing argument `$name`", 58345905834);
+      writeError("Missing argument "
+          "`$name` (List of ${T.runtimeType.toString()})", 58345905834);
     }
 
     try {
