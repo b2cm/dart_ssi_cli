@@ -85,9 +85,6 @@ Future<DidcommEncryptedMessage> encryptMessage({
       .resolveKeyIds()
       .convertAllKeysToJwk();
 
-  if (message.type != DidcommMessages.emptyMessage.value) {
-    await wallet.storeConversationEntry(message, connectionDid);
-  }
   var encrypted = DidcommEncryptedMessage.fromPlaintext(
       senderPrivateKeyJwk: myPrivateKey!,
       recipientPublicKeyJwk: [

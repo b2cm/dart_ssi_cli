@@ -30,6 +30,7 @@ const String PARAM_REPLY_URL = 'reply-url';
 const String PARAM_CONNECTION_DID = 'connection-did';
 const String PARAM_CREDENTIAL_DID = 'credential-did';
 const String PARAM_ENCRYPT_MESSAGE = 'encrypt';
+const String PARAM_RECEIVER_DID = 'receiver_did';
 
 const String PARAM_MNEMONIC = 'mnemonic';
 const String PARAM_INIT_ISSUERS = 'init-issuers';

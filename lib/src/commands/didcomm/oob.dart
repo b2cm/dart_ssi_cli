@@ -35,8 +35,11 @@ class DidCommOObCommand extends SsiCliCommandBase {
 
     ..addOption(PARAM_ISSUER_DID,
         valueHelp: '"did:ethr:0xF1..."',
-        help: "UUID: issuer did id of the message.",
-        mandatory: true)
+        help:
+            "UUID: issuer did id of the message. "
+            "Should be in control of the wallet. "
+            "If not given, the wallets standard issuing did will be used ",
+        mandatory: false)
 
     ..addOption(
         PARAM_OFFER_CREDENTIAL,
@@ -57,8 +60,15 @@ class DidCommOObCommand extends SsiCliCommandBase {
         mandatory: true)
 
     ..addFlag(PARAM_ENCRYPT_MESSAGE,
-        help: "If not set, the received message will be returned unencrypted.",
+        help: "If not set, the received message will be returned unencrypted. "
+            "Likely not useful. Only works if you know the receiver_did",
     )
+    ..addOption(PARAM_RECEIVER_DID,
+        valueHelp: '"did:ethr:0xF1..."',
+        help: "UUID: Receiver DID for oob message. "
+            "Must be set when using option `--${PARAM_ENCRYPT_MESSAGE}`",
+        mandatory: false);
+
 
     ;
   }
@@ -71,13 +81,21 @@ class DidCommOObCommand extends SsiCliCommandBase {
         orElse: Uuid().v4().toString())!;
     var offerCredential = getArgJson(PARAM_OFFER_CREDENTIAL,
         isOptional: false);
-    var issuerDid = getArgDid(PARAM_ISSUER_DID, isOptional: false);
+    var wallet = await loadWalletFromArgs();
+    var issuerDid = getArgDid(PARAM_ISSUER_DID, isOptional: true,
+        orElse: wallet.getStandardIssuerDid());
     var replyTo = getArgList<String>(PARAM_REPLY_TO, isOptional: false)!;
     var connectionDid = getArgDid(PARAM_CONNECTION_DID, isOptional: false)!;
     var encrypt = getArgFlag(PARAM_ENCRYPT_MESSAGE);
     var walletName = getArgString(PARAM_WALLET_NAME);
-    var wallet = await loadWalletFromArgs();
+    var receiverDid = getArgDid(PARAM_RECEIVER_DID, isOptional: true);
 
+    if (encrypt && receiverDid == null) {
+      writeResult(
+          "When encrypting the message, the receiver must be known. "
+          "Use `--${PARAM_RECEIVER_DID}` (Code: 843276)"
+      );
+    }
     // Check if stuff is controlled by the wallet
     if (!wallet
         .getAllConnections()
@@ -85,7 +103,7 @@ class DidCommOObCommand extends SsiCliCommandBase {
         .contains(connectionDid)) {
       writeError(
           "Connection DID `$connectionDid` "
-              "not found in wallet `$walletName`",
+          "not found in wallet `$walletName`",
           23423094
       );
     }
@@ -102,12 +120,11 @@ class DidCommOObCommand extends SsiCliCommandBase {
       );
 
        if (encrypt) {
-
           var msg = await encryptMessage(
               connectionDid: connectionDid,
               message: cred,
               wallet: wallet,
-              receiverDid: cred.from!
+              receiverDid: receiverDid!,
           );
           writeResultJson(msg.toJson());
         }

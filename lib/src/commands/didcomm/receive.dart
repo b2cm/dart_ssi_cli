@@ -84,7 +84,8 @@ class DidCommReceiveCommand extends SsiCliCommandBase {
     // encryption needs a connection did set
     if (connectionDid == null && encrypt) {
       writeError(
-          "If you want to encrypt a message, you need to provide a connection DID.",
+          "If you want to encrypt a message, you need to provide a "
+          "connection DID.",
           43958349058
       );
     }
@@ -106,22 +107,29 @@ class DidCommReceiveCommand extends SsiCliCommandBase {
       plain = DidcommPlaintextMessage.fromJson(message);
     }
     try {
-      var m = await handleDidcommMessage(plain,
+      var result = await handleDidcommMessage(plain,
           wallet: wallet,
           replyTo: replyTo,
           credentialDid: credentialDid,
           connectionDid: connectionDid);
-      if (m != null) {
+
+      if (result != null) {
+        // @TODO: should we also store// the message if no connection is set?
+        if (connectionDid != null &&
+            result.type != DidcommMessages.emptyMessage.value) {
+          await wallet.storeConversationEntry(result, connectionDid);
+        }
+
         if (encrypt) {
           var msg = await encryptMessage(
               connectionDid: connectionDid!,
-              message: m,
+              message: result,
               wallet: wallet,
-              receiverDid: m.from!
+              receiverDid: plain.from!
           );
           writeResultJson(msg.toJson());
         }
-        writeResultJson(m.toJson());
+        writeResultJson(result.toJson());
       }
       // default message if no message was returned
       writeResult("Ack");
