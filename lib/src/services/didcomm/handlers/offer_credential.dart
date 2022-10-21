@@ -12,7 +12,7 @@ class DidcommOfferCredentialMessageHandler extends AbstractDidcommMessageHandler
   ];
 
   bool get needsConnectionDid => false;
-  bool get needsCredentialDid => true;
+  bool get needsCredentialDid => false;
   bool get needsReplyTo => true;
   bool get needsWallet => true;
 
@@ -22,8 +22,8 @@ class DidcommOfferCredentialMessageHandler extends AbstractDidcommMessageHandler
 
     var request = generateRequestCredentialMessageFromOffer(
         offer: offer,
-        replyTo: replyTo!,
-        credentialDid: credentialDid!);
+        wallet: wallet!,
+        replyTo: replyTo!);
 
     return request;
   }

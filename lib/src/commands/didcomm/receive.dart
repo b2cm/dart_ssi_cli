@@ -81,15 +81,6 @@ class DidCommReceiveCommand extends SsiCliCommandBase {
       }
     }
 
-    // encryption needs a connection did set
-    if (connectionDid == null && encrypt) {
-      writeError(
-          "If you want to encrypt a message, you need to provide a "
-          "connection DID.",
-          43958349058
-      );
-    }
-
     late DidcommPlaintextMessage plain;
     // try to decrypt the message if it looks like an encrypted message
     if (message.containsKey('ciphertext')) {
@@ -112,8 +103,8 @@ class DidCommReceiveCommand extends SsiCliCommandBase {
           replyTo: replyTo,
           credentialDid: credentialDid,
           connectionDid: connectionDid);
-
       if (result != null) {
+        connectionDid = connectionDid ?? result.from;
         // @TODO: should we also store// the message if no connection is set?
         if (connectionDid != null &&
             result.type != DidcommMessages.emptyMessage.value) {
@@ -121,6 +112,15 @@ class DidCommReceiveCommand extends SsiCliCommandBase {
         }
 
         if (encrypt) {
+          // encryption needs a connection did set
+          if (connectionDid == null) {
+            writeError(
+                "If you want to encrypt a message, you need to provide a "
+                "connection DID.",
+                43958349058
+            );
+          }
+
           var msg = await encryptMessage(
               connectionDid: connectionDid!,
               message: result,

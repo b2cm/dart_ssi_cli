@@ -160,8 +160,9 @@ Future<ProposeCredential> generateProposeCredentialMessage({
 RequestCredential generateRequestCredentialMessageFromOffer({
   required OfferCredential offer,
   required List<String> replyTo,
-  required credentialDid,
+  required WalletStore wallet,
 }){
+  var connectionDid = getConversationDid(offer, wallet);
   var message = RequestCredential(
       detail: [
         LdProofVcDetail(
@@ -172,7 +173,7 @@ RequestCredential generateRequestCredentialMessageFromOffer({
       ],
       replyTo: replyTo,
       threadId: offer.threadId ?? offer.id,
-      from: credentialDid,
+      from: getConversationDid(offer, wallet),
       to: [offer.from!]);
 
   return message;
@@ -216,4 +217,30 @@ List<String> getSupportedMessageTypes() {
  }
 
  return types;
+}
+
+/// filters a list of [dids] for dids that are owned by the [wallet]
+List<String> filterOwnedDids(List<String> dids, WalletStore wallet) {
+  List<String> owned = wallet.getAllConnections().keys.toList().cast();
+  return dids.where((did) => owned.contains(owned)).toList();
+}
+
+/// tries to load a conversation given the [message]
+/// if not found, an [DidcommServiceException] is thrown if [throwIfNotFound]
+String? getConversationDid(
+    DidcommPlaintextMessage message,
+    WalletStore wallet, {bool throwIfNotFound = false}) {
+
+  String threadId = message.threadId ?? message.id;
+  var conversation = wallet.getConversationEntry(threadId);
+  if (conversation == null) {
+    if (throwIfNotFound) {
+      throw DidcommServiceException(
+        "Could not find conversation for threadId `$threadId`",
+        code: 45093450);
+    }
+    return null;
+  }
+
+  return conversation.myDid;
 }

@@ -13,10 +13,10 @@ class DidcommProposeCredentialMessageHandler extends AbstractDidcommMessageHandl
   List<String> get supportedTypes => [
     DidcommMessages.proposeCredential.value
   ];
-  bool get needsConnectionDid => true;
+  bool get needsConnectionDid => false;
   bool get needsCredentialDid => false;
   bool get needsReplyTo => true;
-  bool get needsWallet => false;
+  bool get needsWallet => true;
 
   @override
   Future<OfferCredential?> handle(DidcommPlaintextMessage message) async {
@@ -50,7 +50,7 @@ class DidcommProposeCredentialMessageHandler extends AbstractDidcommMessageHandl
     var offer = OfferCredential(
         threadId: propose.threadId ?? message.id,
         detail: propose.detail,
-        from: connectionDid,
+        from: getConversationDid(message, wallet!),
         to: [propose.from!],
         replyTo: replyTo);
 

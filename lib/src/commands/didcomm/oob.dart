@@ -8,7 +8,6 @@ import '../ssi_cli_base.dart';
 
 class DidCommOObCommand extends SsiCliCommandBase {
 
-
   @override
   final name = COMMAND_DIDCOMM_OOB;
 
@@ -68,8 +67,6 @@ class DidCommOObCommand extends SsiCliCommandBase {
         help: "UUID: Receiver DID for oob message. "
             "Must be set when using option `--${PARAM_ENCRYPT_MESSAGE}`",
         mandatory: false);
-
-
     ;
   }
 
@@ -96,6 +93,7 @@ class DidCommOObCommand extends SsiCliCommandBase {
           "Use `--${PARAM_RECEIVER_DID}` (Code: 843276)"
       );
     }
+
     // Check if stuff is controlled by the wallet
     if (!wallet
         .getAllConnections()
@@ -118,18 +116,20 @@ class DidCommOObCommand extends SsiCliCommandBase {
           threadId: threadId,
           connectionDid: connectionDid
       );
+      // Remember the conversation so we can decrypt the response
+      await wallet.storeConversationEntry(cred, cred.from ?? connectionDid);
 
-       if (encrypt) {
-          var msg = await encryptMessage(
-              connectionDid: connectionDid,
-              message: cred,
-              wallet: wallet,
-              receiverDid: receiverDid!,
-          );
-          writeResultJson(msg.toJson());
-        }
-        writeResultJson(cred.toJson());
-      }
+      if (encrypt) {
+         var msg = await encryptMessage(
+             connectionDid: connectionDid,
+             message: cred,
+             wallet: wallet,
+             receiverDid: receiverDid!,
+         );
+         writeResultJson(msg.toJson());
+       }
+       writeResultJson(cred.toJson());
+    }
 
     writeError("No operation given for `$name` command", 353456196);
 
