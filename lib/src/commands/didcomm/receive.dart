@@ -34,7 +34,7 @@ class DidCommReceiveCommand extends SsiCliCommandBase {
       )
 
       ..addFlag(PARAM_ENCRYPT_MESSAGE,
-          help: "If not set, the received message will be returned unencrypted.",
+          help: "If not set, the message will be returned unencrypted.",
       )
 
       ..addOption(PARAM_CONNECTION_DID,
@@ -47,7 +47,11 @@ class DidCommReceiveCommand extends SsiCliCommandBase {
           valueHelp: '"did:ethr:0xF1..."',
           help: "Credential did to use for. The did must "
                 "be controlled by the wallet.",
-          mandatory: false);
+          mandatory: false)
+
+      ..addFlag(PARAM_FORCE,
+        help: "Some operations may have an unexpected behaviour and ask you"
+            "to confirm the operation.")
     ;
 
   }
@@ -61,6 +65,10 @@ class DidCommReceiveCommand extends SsiCliCommandBase {
     bool encrypt = getArgFlag(PARAM_ENCRYPT_MESSAGE);
     var walletName = getArgString(PARAM_WALLET_NAME)!;
     var wallet = await loadWalletFromArgs();
+
+    var extraParams = {
+      'force': getArgFlag(PARAM_FORCE)
+    };
 
     // Check if stuff is controlled by the wallet
     if (connectionDid != null) {
@@ -99,16 +107,18 @@ class DidCommReceiveCommand extends SsiCliCommandBase {
     }
     try {
       var result = await handleDidcommMessage(plain,
+          extraParams: extraParams,
           wallet: wallet,
           replyTo: replyTo,
           credentialDid: credentialDid,
           connectionDid: connectionDid);
       if (result != null) {
-        connectionDid = connectionDid ?? result.from;
+        var resPlainText = result as DidcommPlaintextMessage;
+        connectionDid = connectionDid ?? resPlainText.from;
         // @TODO: should we also store// the message if no connection is set?
         if (connectionDid != null &&
-            result.type != DidcommMessages.emptyMessage.value) {
-          await wallet.storeConversationEntry(result, connectionDid);
+            resPlainText.type != DidcommMessages.emptyMessage.value) {
+          await wallet.storeConversationEntry(resPlainText, connectionDid);
         }
 
         if (encrypt) {
@@ -133,8 +143,8 @@ class DidCommReceiveCommand extends SsiCliCommandBase {
       }
       // default message if no message was returned
       writeResult("Ack");
-    } on Exception catch (e) {
-      writeError("Could not handle didcomm message due to `$e`", 234234234);
+    } on Exception catch (e, trace) {
+      writeError("Could not handle didcomm message due to `$e` (${trace.toString()})", 234234234);
     }
 
     writeResultJson(plain.toJson());

@@ -14,7 +14,7 @@ ArgParser addWalletNecessaryParametersToArgParser(ArgParser argParser,
 
     ..addOption(PARAM_WALLET_DATA_DIR,
         help: "Directory in Filesystem to store Wallet-Files. "
-              "Will be the current directory if not given. "
+              "Will evaluate to the current directory, if not supplied. "
               "The Directory MUST exist (will not be created)",
         defaultsTo: Directory.current.path)
 

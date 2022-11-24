@@ -15,22 +15,27 @@ class VerifyCommand extends Command {
       ..addOption('rpcUrl',
           defaultsTo: 'http://localhost:8545',
           help: 'Url for RPC-Endpoint of Ethereum-Node')
+
       ..addFlag('checkForRevocation',
           abbr: 'r',
           help:
               'Indicates if the revocation status of credentials should be checked')
+
       ..addOption('erc1056Contract',
           abbr: 'e',
           help: 'Contract address of ErC1056-Contract (EthereumDIDRegistry)')
+
       ..addOption('challenge',
           abbr: 'c',
           help:
               'Expected challenge in a presentation. Therefor this option is only needed if you check a presentation.')
+
       ..addMultiOption('plaintextCredential',
           abbr: 'p',
           splitCommas: false,
           help:
               'The (disclosed) plaintext credentials. Multiple plaintext credentials allowed, but use -p every time; separating by comma wont work.')
+
       ..addOption('signedJson',
           abbr: 's',
           help: 'The signed json-object (credential or presentation) to check');

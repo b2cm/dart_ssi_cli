@@ -17,7 +17,9 @@ class DidcommRequestCredentialMessageHandler extends AbstractDidcommMessageHandl
   bool get needsWallet => true;
 
   @override
-  Future<IssueCredential?> handle(DidcommPlaintextMessage message) async {
+  Future<IssueCredential?> handle(DidcommMessage message) async {
+    message as DidcommPlaintextMessage;
+
     var request = RequestCredential.fromJson(message.toJson());
     var credential = request.detail!.first.credential;
     if (!credential.context.contains('https://schema.org')) {

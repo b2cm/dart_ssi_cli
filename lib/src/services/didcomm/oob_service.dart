@@ -69,12 +69,46 @@ OutOfBandMessage oobOfferCredential({
       attachments: [Attachment(data: AttachmentData(json: offer.toJson()))]);
 }
 
+OutOfBandMessage oobRequestPresentation({
+  required PresentationDefinition presentationDefinition,
+  required String oobId,
+  required String threadId,
+  required List<String> replyTo,
+  required String issuerDid,
+  required String connectionDid,
+  required String challenge,
+  required String domain,
+}) {
+  var request = RequestPresentation(
+          id: threadId,
+          threadId: threadId,
+          parentThreadId: oobId,
+          from: connectionDid,
+          replyTo: replyTo,
+          presentationDefinition: [PresentationDefinitionWithOptions(
+            domain: domain,
+            challenge: challenge,
+            presentationDefinition: presentationDefinition,
+          )]
+        );
+
+  var oob = OutOfBandMessage(id: oobId, from: connectionDid, attachments: [
+    Attachment(
+        data: AttachmentData(
+            json: request.toJson()
+        ))],
+      replyTo: replyTo);
+
+  return oob;
+}
+
+
 /// Resolves the attachments and returns them as PlainTextMessages
 /// Each message is tried to be resolved. An error is reported for each message
 /// if it could not be resolved or parsed.
 Future<List<Result<DidcommPlaintextMessage, String>>>
   getPlaintextFromOobAttachments(OutOfBandMessage message,
-    {DidcommMessages? expectedAttachment}) async {
+    {List<DidcommMessages>? expectedAttachments}) async {
 
   List<Result<DidcommPlaintextMessage, String>> res = [];
   if (message.attachments!.isNotEmpty) {
@@ -110,14 +144,16 @@ Future<List<Result<DidcommPlaintextMessage, String>>>
   }
 
   // filter by type (optionally)
-  if (expectedAttachment != null) {
+  if (expectedAttachments != null) {
+    List<String> expectedAttachmentsAsString = expectedAttachments.map(
+            (e) => e.value).toList();
     for (var i = 0; i < res.length; i++) {
       if (res[i].isOk) {
         DidcommPlaintextMessage r = res[i].unrwap();
-        if (r.type != expectedAttachment.value) {
+        if (!expectedAttachmentsAsString.contains(r.type)) {
           res[i] = Result.Error(
-              "Attachment is of type `${r.type}` but expected "
-              "`$expectedAttachment` (Code: 3583457348)");
+              "Attachment is of type `${r.type}` but expected one of "
+              "`${expectedAttachmentsAsString.join(', ')}` (Code: 3583457348)");
         }
       }
     }

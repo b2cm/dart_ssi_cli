@@ -17,7 +17,7 @@ class DidcommOfferCredentialMessageHandler extends AbstractDidcommMessageHandler
   bool get needsWallet => true;
 
   @override
-  Future<RequestCredential> handle(DidcommPlaintextMessage message) async {
+  Future<RequestCredential> handle(DidcommMessage message) async {
     var offer = OfferCredential.fromJson(message.toJson());
 
     var request = generateRequestCredentialMessageFromOffer(

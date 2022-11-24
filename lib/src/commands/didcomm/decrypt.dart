@@ -1,8 +1,6 @@
 import 'package:ssi_cli/src/constants.dart';
 import 'package:ssi_cli/src/services/cli_service.dart';
 import 'package:ssi_cli/src/services/didcomm/didcomm_service.dart';
-import 'package:ssi_cli/src/services/didcomm/oob_service.dart';
-import 'package:uuid/uuid.dart';
 
 import '../ssi_cli_base.dart';
 
@@ -14,7 +12,7 @@ class DidCommDecryptMessageCommand extends SsiCliCommandBase {
 
   @override
   final description =
-      "Didcomm endpoint (only supporting encrypted messages atm)";
+      "Decrypt a message";
 
   DidCommDecryptMessageCommand() {
     addWalletNecessaryParametersToArgParser(argParser)

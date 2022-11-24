@@ -56,7 +56,16 @@ abstract class SsiCliCommandBase extends Command {
 
   /// just checks for occurrence of a parameter
   bool getArgFlag(String name) {
-    return _getArgValue(name, checkParent: true);
+    dynamic val = _getArgValue(name, checkParent: true);
+    if (val == null) {
+      return false;
+    }
+
+    if (val is bool) {
+      return val;
+    };
+
+    return false;
   }
 
   /// tries to get a argument as String

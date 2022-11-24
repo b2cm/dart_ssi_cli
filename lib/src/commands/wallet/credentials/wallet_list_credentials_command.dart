@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:ssi_cli/src/commands/ssi_cli_base.dart';
 import 'package:ssi_cli/src/constants.dart';
 
@@ -17,6 +19,17 @@ class WalletListCredentialsCommand extends SsiCliCommandBase {
     var creds = await wallet.getAllCredentials();
     await wallet.closeBoxes();
 
-    writeResultJson(creds);
+    Map<String, dynamic> result = {};
+    for (var entry in creds.entries) {
+      var did = entry.key;
+      var credential = entry.value;
+      result[did] = {
+        'w3cCredential': credential.w3cCredential != '' ? jsonDecode(credential.w3cCredential) : null,
+        'plaintextCredential': credential.plaintextCredential != '' ? jsonDecode(credential.plaintextCredential) : null,
+        'hdPath': credential.hdPath,
+      };
+    }
+    writeResultJson(result);
   }
 }
+

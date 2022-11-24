@@ -12,38 +12,41 @@ import '../../definitions.dart';
 /// main entry point for handling didcomm messages
 /// will not send the messages itself, but will return the message to be sent
 /// in an unencrypted format
-Future<DidcommPlaintextMessage?> handleDidcommMessage(
-    DidcommMessage message, {
+Future<DidcommMessage?> handleDidcommMessage(
+    DidcommMessage plainTextMessage, {
       String? connectionDid,
       String? credentialDid,
       List<String>? replyTo,
       WalletStore? wallet,
+      extraParams = const {},
 }) async {
   // For now, we only expect encrypted messages
-  if (message is! DidcommPlaintextMessage) throw DidcommServiceException(
-      "The supplied message is no valid plaintext message", code: 290482390);
+  plainTextMessage as DidcommPlaintextMessage;
+  /*if (message is! DidcommPlaintextMessage) throw DidcommServiceException(
+      "The supplied message is no valid plaintext message", code: 290482390);*/
 
-  DidcommPlaintextMessage? result;
+  DidcommMessage? result;
   bool foundHandler = false;
   for (var handler in ALL_HANDLERS) {
-    if (handler.supportedTypes.contains(message.type)) {
+    if (handler.supportedTypes.contains(plainTextMessage.type)) {
       handler.connectionDid = connectionDid;
       handler.credentialDid = credentialDid;
       handler.replyTo = replyTo;
       handler.wallet = wallet;
-      result = await handler.execute(message);
+      handler.extraParams = extraParams;
+      result = await handler.execute(plainTextMessage);
       foundHandler = true;
     }
   }
 
   if (foundHandler == false) {
     throw DidcommServiceException(
-        "No handler found for message type `${message.type}`. "
+        "No handler found for message type `${plainTextMessage.type}`. "
         "Available handlers: `" + getSupportedMessageTypes().join('`, `'),
         code: 23498234);
   }
 
-  if (message.ack != null) {
+  if (plainTextMessage.ack != null) {
     //running.remove(plain.threadId); @TODO bring this to API
     //print('this is an ack for ${plain.ack}, thread: ${plain.threadId}');
   }

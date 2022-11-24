@@ -19,7 +19,9 @@ class DidcommProposeCredentialMessageHandler extends AbstractDidcommMessageHandl
   bool get needsWallet => true;
 
   @override
-  Future<OfferCredential?> handle(DidcommPlaintextMessage message) async {
+  Future<OfferCredential?> handle(DidcommMessage message) async {
+    var plainTextMessage = message as DidcommPlaintextMessage;
+
     var propose = ProposeCredential.fromJson(message.toJson());
 
     // it is expected that the wallet changes the did,

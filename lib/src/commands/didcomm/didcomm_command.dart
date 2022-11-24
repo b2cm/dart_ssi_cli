@@ -1,5 +1,7 @@
 import 'package:ssi_cli/src/commands/didcomm/decrypt.dart';
+import 'package:ssi_cli/src/commands/didcomm/encrypt.dart';
 import 'package:ssi_cli/src/commands/didcomm/receive.dart';
+import 'package:ssi_cli/src/commands/didcomm/verify_presentation.dart';
 import 'package:ssi_cli/src/commands/ssi_cli_base.dart';
 
 import '../../constants.dart';
@@ -18,5 +20,7 @@ class DidCommCommand extends SsiCliCommandBase {
     addSubcommand(DidCommOObCommand());
     addSubcommand(DidCommReceiveCommand());
     addSubcommand(DidCommDecryptMessageCommand());
+    addSubcommand(DidCommEncryptMessageCommand());
+    addSubcommand(DidCommVerifyPresentationCommand());
   }
 }

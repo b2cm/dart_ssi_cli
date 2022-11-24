@@ -2,10 +2,12 @@ import 'package:dart_ssi/didcomm.dart';
 import 'package:dart_ssi/wallet.dart';
 import 'package:ssi_cli/src/exceptions/didcomm_service_exceptions.dart';
 import 'package:ssi_cli/src/services/didcomm/handlers/offer_credential.dart';
+import 'package:ssi_cli/src/services/didcomm/handlers/presentation_request_handler.dart';
 import 'package:ssi_cli/src/services/didcomm/handlers/propose_credential.dart';
 import 'package:ssi_cli/src/services/didcomm/handlers/request_credential.dart';
 
 import 'invitation_handler.dart';
+import 'issue_credential.dart';
 
 /// Abstract class for handling DidComm messages
 abstract class AbstractDidcommMessageHandler {
@@ -14,6 +16,8 @@ abstract class AbstractDidcommMessageHandler {
   List<String>? replyTo;
   WalletStore? wallet;
 
+  Map<String, dynamic> extraParams = {};
+
   List<String> get supportedTypes;
 
   bool get needsConnectionDid;
@@ -21,33 +25,38 @@ abstract class AbstractDidcommMessageHandler {
   bool get needsReplyTo;
   bool get needsWallet;
 
+  // Force a operation on doubt
+  bool get force =>
+      extraParams.containsKey('force') && extraParams['force'] == true;
+
   AbstractDidcommMessageHandler();
-  Future<DidcommPlaintextMessage?> execute(DidcommPlaintextMessage message) {
+  Future<DidcommMessage?> execute(DidcommMessage message) {
+    var plainTextMessage = message as DidcommPlaintextMessage;
     if (needsConnectionDid && connectionDid == null) {
       throw DidcommServiceException(
-          "Handler for ${message.type}  needs a connection did.",
+          "Handler for ${plainTextMessage.type}  needs a connection did.",
           code: 3249823);
     }
     if (needsCredentialDid && credentialDid == null) {
       throw DidcommServiceException(
-          "Handler for ${message.type} needs a credential did.",
+          "Handler for ${plainTextMessage.type} needs a credential did.",
           code: 23498239402);
     }
     if (needsWallet && wallet == null) {
       throw DidcommServiceException(
-          "Handler for ${message.type} needs a wallet.",
+          "Handler for ${plainTextMessage.type} needs a wallet.",
           code: 823490835);
     }
 
     if (needsReplyTo && (replyTo == null || replyTo!.isEmpty)) {
       throw DidcommServiceException(
-          "Handler for ${message.type} needs a replyTo.",
+          "Handler for ${plainTextMessage.type} needs a replyTo.",
           code: 9583490);
     }
 
-    if (!supportedTypes.contains(message.type)) {
+    if (!supportedTypes.contains(plainTextMessage.type)) {
       throw DidcommServiceException(
-          "Handler cannot handle ${message.type} messages.",
+          "Handler cannot handle ${plainTextMessage.type} messages.",
           code: 234238920);
     }
 
@@ -56,7 +65,7 @@ abstract class AbstractDidcommMessageHandler {
 
   /// Actual handling method.
   /// variables can be expected to be non-null as configured
-  Future<DidcommPlaintextMessage?> handle(DidcommPlaintextMessage message);
+  Future<DidcommMessage?> handle(DidcommMessage message);
 }
 
 var ALL_HANDLERS = [
@@ -64,4 +73,6 @@ var ALL_HANDLERS = [
   DidcommProposeCredentialMessageHandler(),
   DidcommRequestCredentialMessageHandler(),
   DidcommOfferCredentialMessageHandler(),
+  DidcommPresentationRequestMessageHandler(),
+  DidcommIssueCredentialHandler(),
 ];

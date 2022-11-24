@@ -1,3 +1,4 @@
+import 'package:dart_ssi/credentials.dart';
 import 'package:ssi_cli/src/constants.dart';
 import 'package:ssi_cli/src/services/cli_service.dart';
 import 'package:ssi_cli/src/services/didcomm/didcomm_service.dart';
@@ -12,7 +13,9 @@ class DidCommOObCommand extends SsiCliCommandBase {
   final name = COMMAND_DIDCOMM_OOB;
 
   @override
-  final description = "Out of Band (OOB) messages";
+  final description =
+      "Out of Band (OOB) messages. "
+      "Currently supports Credential Offers and Presentation Requests.";
 
   DidCommOObCommand() {
     addWalletNecessaryParametersToArgParser(argParser, isMandatory: true);
@@ -42,9 +45,27 @@ class DidCommOObCommand extends SsiCliCommandBase {
 
     ..addOption(
         PARAM_OFFER_CREDENTIAL,
-        help: "JSON: credential to offer.",
-        mandatory: true,
+        help: "JSON: credential to offer. If you want to offer some",
+        mandatory: false,
     )
+
+    ..addOption(
+        PARAM_CHALLENGE,
+        help: "Challenge to use for the OOB message. "
+              "Only used if ${PARAM_PRESENTATION_DEFINITION} is set. "
+              "If not given, a random challenge will be generated.",
+        mandatory: false,
+    )
+
+    ..addOption(
+        PARAM_PRESENTATION_DEFINITION,
+        help: "JSON: credential to request; If you want to request one.",
+        mandatory: false)
+
+    ..addOption(
+        PARAM_DOMAIN,
+        help: "Domain to use for the OOB message. Only used if ${PARAM_PRESENTATION_DEFINITION} is set.",
+        mandatory: false)
 
     ..addMultiOption(PARAM_REPLY_TO,
         help: "endpoint(s) the response should be send to",
@@ -62,11 +83,13 @@ class DidCommOObCommand extends SsiCliCommandBase {
         help: "If not set, the received message will be returned unencrypted. "
             "Likely not useful. Only works if you know the receiver_did",
     )
+
     ..addOption(PARAM_RECEIVER_DID,
         valueHelp: '"did:ethr:0xF1..."',
         help: "UUID: Receiver DID for oob message. "
             "Must be set when using option `--${PARAM_ENCRYPT_MESSAGE}`",
-        mandatory: false);
+        mandatory: false)
+
     ;
   }
 
@@ -77,7 +100,10 @@ class DidCommOObCommand extends SsiCliCommandBase {
     String oobId = getArgUuid(PARAM_OOB_ID,
         orElse: Uuid().v4().toString())!;
     var offerCredential = getArgJson(PARAM_OFFER_CREDENTIAL,
-        isOptional: false);
+        isOptional: true);
+    var domain = getArgString(PARAM_DOMAIN, isOptional: true);
+    var requestCredential = getArgJson(PARAM_PRESENTATION_DEFINITION,
+        isOptional: true);
     var wallet = await loadWalletFromArgs();
     var issuerDid = getArgDid(PARAM_ISSUER_DID, isOptional: true,
         orElse: wallet.getStandardIssuerDid());
@@ -129,9 +155,41 @@ class DidCommOObCommand extends SsiCliCommandBase {
          writeResultJson(msg.toJson());
        }
        writeResultJson(cred.toJson());
+
+    } else if (requestCredential != null) {
+      if (domain == null) {
+        writeError(
+            "When requesting a credential, the domain must be set. "
+            "Use `--${PARAM_DOMAIN}`", 234234
+        );
+      }
+
+      String challenge = getArgString(PARAM_CHALLENGE, isOptional: true,
+          orElse: Uuid().v4().toString())!;
+
+      var oob = oobRequestPresentation(
+          presentationDefinition: PresentationDefinition.fromJson(requestCredential),
+          oobId: oobId,
+          threadId: threadId,
+          replyTo: replyTo,
+          issuerDid: issuerDid!,
+          connectionDid: connectionDid,
+          challenge: challenge,
+          domain: domain!);
+
+      await wallet.storeConversationEntry(oob, oob.from ?? connectionDid);
+
+      if (encrypt) {
+        var msg = await encryptMessage(
+             connectionDid: connectionDid,
+             message: oob,
+             wallet: wallet,
+             receiverDid: receiverDid!,
+         );
+         writeResultJson(msg.toJson());
+       }
+      writeResultJson(oob.toJson());
     }
-
     writeError("No operation given for `$name` command", 353456196);
-
   }
 }
