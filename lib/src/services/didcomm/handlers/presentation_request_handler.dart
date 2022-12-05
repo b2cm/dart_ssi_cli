@@ -25,7 +25,6 @@ class DidcommPresentationRequestMessageHandler extends AbstractDidcommMessageHan
     var res = await searchForMatchingCredentials(
         message: requestPresentation,
         wallet: wallet!,
-        connectionDid: connectionDid!,
     );
 
     var allCredentialFlattened =
@@ -46,6 +45,8 @@ class DidcommPresentationRequestMessageHandler extends AbstractDidcommMessageHan
         requestPresentation.presentationDefinition.first.challenge);
 
     var presentationMessage = Presentation(
+        to: [requestPresentation.from!],
+        replyTo: replyTo,
         verifiablePresentation: [VerifiablePresentation.fromJson(vp)],
         threadId: requestPresentation.threadId ?? requestPresentation.id);
 

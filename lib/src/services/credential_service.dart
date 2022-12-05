@@ -9,7 +9,6 @@ import 'package:dart_ssi/wallet.dart';
 Future<List<FilterResult>> searchForMatchingCredentials({
   required RequestPresentation message,
   required WalletStore wallet,
-  required String connectionDid,
   }
 ) async {
   List<FilterResult> finalShow = [];

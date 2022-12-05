@@ -51,7 +51,7 @@ class DidCommVerifyPresentationCommand extends SsiCliCommandBase {
     RequestPresentation? presentationRequest;
     try {
       presentationRequest = RequestPresentation.fromJson(presentationRequestMap);
-    } catch (e) {
+    } catch (e, tb) {
       writeError("Presentation definition could not be parsed due to "
           "`${e.toString()}`",
           49583490, terminate: true);

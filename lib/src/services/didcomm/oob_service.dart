@@ -82,7 +82,7 @@ OutOfBandMessage oobRequestPresentation({
   var request = RequestPresentation(
           id: threadId,
           threadId: threadId,
-          parentThreadId: oobId,
+          parentThreadId: threadId,
           from: connectionDid,
           replyTo: replyTo,
           presentationDefinition: [PresentationDefinitionWithOptions(
@@ -92,7 +92,9 @@ OutOfBandMessage oobRequestPresentation({
           )]
         );
 
-  var oob = OutOfBandMessage(id: oobId, from: connectionDid, attachments: [
+  var oob = OutOfBandMessage(id: oobId, from: connectionDid,
+      threadId: threadId,
+      attachments: [
     Attachment(
         data: AttachmentData(
             json: request.toJson()

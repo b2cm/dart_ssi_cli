@@ -1,11 +1,9 @@
 import 'package:dart_ssi/didcomm.dart';
-import 'package:dart_ssi/wallet.dart';
 import 'package:ssi_cli/src/exceptions/didcomm_service_exceptions.dart';
 import 'package:ssi_cli/src/services/didcomm/didcomm_service.dart';
 import 'package:ssi_cli/src/services/didcomm/handlers/abstract_didcomm_message_handler.dart';
 import 'package:ssi_cli/src/services/didcomm/handlers/presentation_request_handler.dart';
 
-import '../../credential_service.dart';
 import '../oob_service.dart';
 
 class DidcommInvitationMessageHandler extends AbstractDidcommMessageHandler {
@@ -14,8 +12,8 @@ class DidcommInvitationMessageHandler extends AbstractDidcommMessageHandler {
     DidcommMessages.invitation.value
   ];
 
-  bool get needsConnectionDid => true;
-  bool get needsCredentialDid => true;
+  bool get needsConnectionDid => false;
+  bool get needsCredentialDid => false;
   bool get needsReplyTo => true;
   bool get needsWallet => true;
 
@@ -70,11 +68,18 @@ class DidcommInvitationMessageHandler extends AbstractDidcommMessageHandler {
       return (await childHandler.execute(attachment))!;
   }
 
+
   /// Propose a message due to an oob-offer
   Future<ProposeCredential> _handleOfferCredentialAttachment(
     DidcommPlaintextMessage attachment,
 
     ) async {
+    if (connectionDid == null || credentialDid == null) {
+      throw DidcommServiceException(
+          "Connection did and credential did must be set to handle "
+          "an offer credential message",
+          code: 489023);
+    }
   late OfferCredential offer;
     try {
       offer = OfferCredential.fromJson(attachment.toJson());
