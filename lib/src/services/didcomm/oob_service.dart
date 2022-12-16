@@ -66,7 +66,7 @@ OutOfBandMessage oobOfferCredential({
       threadId: threadId,
       from: connectionDid,
       replyTo: replyTo,
-      goalCode: 'streamlined-vp',
+      goalCode: 'streamlined-vc',
       attachments: [Attachment(data: AttachmentData(json: offer.toJson()))]);
 }
 
@@ -95,6 +95,7 @@ OutOfBandMessage oobRequestPresentation({
 
   var oob = OutOfBandMessage(id: oobId, from: connectionDid,
       threadId: threadId,
+      goalCode: 'streamlined-vp',
       attachments: [
     Attachment(
         data: AttachmentData(
