@@ -1,8 +1,8 @@
 import 'package:dart_ssi/credentials.dart';
+import 'package:dart_ssi/didcomm.dart';
 import 'package:ssi_cli/src/constants.dart';
 import 'package:ssi_cli/src/services/cli_service.dart';
-import 'package:ssi_cli/src/services/didcomm/didcomm_service.dart';
-import 'package:ssi_cli/src/services/didcomm/oob_service.dart';
+import 'package:dart_ssi/src/didcomm/didcomm_service.dart';
 import 'package:uuid/uuid.dart';
 
 import '../ssi_cli_base.dart';
@@ -142,6 +142,7 @@ class DidCommOObCommand extends SsiCliCommandBase {
           threadId: threadId,
           connectionDid: connectionDid
       );
+
       // Remember the conversation so we can decrypt the response
       await wallet.storeConversationEntry(cred, cred.from ?? connectionDid);
 

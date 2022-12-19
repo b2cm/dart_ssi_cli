@@ -1,6 +1,6 @@
 import 'package:ssi_cli/src/constants.dart';
 import 'package:ssi_cli/src/services/cli_service.dart';
-import 'package:ssi_cli/src/services/didcomm/didcomm_service.dart';
+import 'package:dart_ssi/src/didcomm/didcomm_service.dart';
 
 import '../ssi_cli_base.dart';
 

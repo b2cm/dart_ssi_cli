@@ -4,7 +4,7 @@ import 'dart:io';
 import 'package:args/command_runner.dart';
 import 'package:dart_ssi/credentials.dart';
 import 'package:dart_ssi/wallet.dart';
-import 'package:ssi_cli/src/definitions.dart';
+import 'package:dart_ssi/src/util/definitions.dart';
 
 /***
  * Will accept a JSON document (credential) and signs it using the given wallet
