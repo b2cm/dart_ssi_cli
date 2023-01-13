@@ -11,6 +11,7 @@ void main(List<String> args) {
     ..addCommand(CredentialCommand())*/
     ..addCommand(WalletCommand())
     ..addCommand(DidCommCommand())
+    ..addCommand(SignatureCommand())
     ..run(args);
 }
 

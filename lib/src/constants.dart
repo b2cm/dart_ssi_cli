@@ -20,6 +20,9 @@ const String COMMAND_WALLET_ISSUER = 'issuer';
 const String COMMAND_WALLET_INIT_ISSUER = 'init';
 const String COMMAND_WALLET_SHOW_ISSUER = 'show';
 
+const String COMMAND_SIGNATURE = 'signature';
+const String COMMAND_SIGNATURE_SIGN = 'sign';
+const String COMMAND_SIGNATURE_VERIFY = 'verify';
 
 const String PARAM_THREAD_ID = 'thread-id';
 const String PARAM_OOB_ID = 'oob-id';
@@ -52,3 +55,8 @@ const String PARAM_KEY_TYPE = 'key-type';
 const String PARAM_DIDCOMM_MESSAGE = 'message';
 const String PARAM_DIDCOMM_ENCRYPTED_MESSAGE = 'message';
 const String PARAM_DIDCOMM_OOB_INVITATION = 'oob-invitation';
+
+const String PARAM_SIGNATURE_SIGN_MESSAGE = 'message';
+const String PARAM_SIGNATURE_SIGN_DID = 'did';
+const String PARAM_SIGNATURE_VERIFY_SIGNATURE_MESSAGE = 'jws';
+const String PARAM_SIGNATURE_VERIFY_EXPECTED_DID = 'expected-did';
