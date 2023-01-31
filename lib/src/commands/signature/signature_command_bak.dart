@@ -106,6 +106,7 @@ class SignatureCommand extends Command {
         }
       }
     }
+
     exit(0);
   }
 }

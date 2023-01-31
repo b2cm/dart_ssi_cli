@@ -20,7 +20,6 @@ class VerifyCommand extends SsiCliCommandBase {
       "Verifies JWS signed data";
 
   VerifyCommand() {
-    addWalletNecessaryParametersToArgParser(argParser);
 
     argParser
       ..addOption(PARAM_SIGNATURE_VERIFY_SIGNATURE_MESSAGE,
@@ -39,7 +38,12 @@ class VerifyCommand extends SsiCliCommandBase {
     var message = getArgString(PARAM_SIGNATURE_VERIFY_SIGNATURE_MESSAGE, isOptional: false)!;
     var expectedDid = getArgDid(PARAM_SIGNATURE_VERIFY_EXPECTED_DID, isOptional: false)!;
 
-    bool signed = await verifyStringSignature(message, expectedDid);
+    var signed = false;
+    try {
+      signed = await verifyStringSignature(message, expectedDid);
+    } catch (e) {
+      writeError(e.toString(), 3249202);
+    }
 
     if (signed) {
       writeResult('valid');

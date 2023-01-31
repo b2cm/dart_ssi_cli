@@ -47,9 +47,11 @@ class SignCommand extends SsiCliCommandBase {
       throw CliException("DID `$did` is not owned by this wallet. "
           "(Either as a connection nor aas a credential)", code: 2348237840923);
     }
-
-    String signed = await signStringOrJson(wallet, did, message);
-
-    writeResult(signed);
+    try {
+         String signed = await signStringOrJson(wallet, did, message);
+         writeResult(signed);
+    } catch (e) {
+      writeError(e.toString(), 94823);
+    }
   }
 }
