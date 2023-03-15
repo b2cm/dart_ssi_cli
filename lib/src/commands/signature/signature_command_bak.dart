@@ -19,11 +19,11 @@ class SignatureCommand extends Command {
       ..addOption('message',
           abbr: 'm',
           help:
-          'the message to sign or to check the signature for. If the message is included in jws as payload it must not be given separately')
+              'the message to sign or to check the signature for. If the message is included in jws as payload it must not be given separately')
       ..addOption('signature', help: 'signature to check (as jws)')
       ..addOption('did',
           help:
-          'The did that should be used to sign or the did expected to have signed')
+              'The did that should be used to sign or the did expected to have signed')
       ..addOption('wallet',
           abbr: 'w',
           help: 'Path to a Wallet the signing keys are in',
@@ -38,7 +38,7 @@ class SignatureCommand extends Command {
       ..addOption('jwsHeader',
           abbr: 'j',
           help:
-          'Custom jws-Header (json). alg value should be ES256K-R (only supported algorithm for now)');
+              'Custom jws-Header (json). alg value should be ES256K-R (only supported algorithm for now)');
   }
 
   run() async {
@@ -53,11 +53,15 @@ class SignatureCommand extends Command {
         var sig;
         if (argResults!['jwsHeader'] == null)
           sig = signStringOrJson(
-              wallet, argResults!['did'], argResults!['message'],
+              wallet: wallet,
+              didToSignWith: argResults!['did'],
+              toSign: argResults!['message'],
               detached: argResults!['detached']);
         else
           sig = signStringOrJson(
-              wallet, argResults!['did'], argResults!['message'],
+              wallet: wallet,
+              didToSignWith: argResults!['did'],
+              toSign: argResults!['message'],
               jwsHeader: argResults!['jwsHeader'],
               detached: argResults!['detached']);
         stdout.writeln(sig);
@@ -85,7 +89,7 @@ class SignatureCommand extends Command {
         try {
           var result = await verifyStringSignature(
             argResults!['signature'],
-            argResults!['did'],
+            expectedDid: argResults!['did'],
             erc1056: erc1056,
             toSign: argResults!['message'],
           );
@@ -96,9 +100,8 @@ class SignatureCommand extends Command {
         }
       } else {
         try {
-          var result = await verifyStringSignature(
-              argResults!['signature'], argResults!['did'],
-              toSign: argResults!['message']);
+          var result = await verifyStringSignature(argResults!['signature'],
+              expectedDid: argResults!['did'], toSign: argResults!['message']);
           stdout.writeln(result);
         } catch (e) {
           stderr.writeln(e);

@@ -5,32 +5,26 @@ import 'package:ssi_cli/src/constants.dart';
 import 'package:ssi_cli/src/services/cli_service.dart';
 
 class DidCommVerifyPresentationCommand extends SsiCliCommandBase {
-
-
   @override
   final name = VERIFY_PRESENTATION;
 
   @override
-  final description =
-      "Verifies if a presentation is a presentation is\n"
+  final description = "Verifies if a presentation is a presentation is\n"
       " - (i) cryptographically valid\n"
-      " - (ii) satisfying the request"
-  ;
+      " - (ii) satisfying the request";
 
   DidCommVerifyPresentationCommand() {
     addWalletNecessaryParametersToArgParser(argParser);
 
     argParser
-        ..addOption(
-          PARAM_PRESENTATION_REQUEST,
-          help: "JSON: Presentation request that needs to be satisfied.",
-        )
-
-        ..addOption(
-          PARAM_PRESENTATION,
-          help: "JSON: Presentation that needs to be verified.",
-        )
-    ;
+      ..addOption(
+        PARAM_PRESENTATION_REQUEST,
+        help: "JSON: Presentation request that needs to be satisfied.",
+      )
+      ..addOption(
+        PARAM_PRESENTATION,
+        help: "JSON: Presentation that needs to be verified.",
+      );
   }
 
   @override
@@ -44,17 +38,21 @@ class DidCommVerifyPresentationCommand extends SsiCliCommandBase {
     try {
       presentation = Presentation.fromJson(presentationMap);
     } catch (e) {
-      writeError("Presentation could not be parsed due to `${e.toString()}`",
-          94855333, terminate: true);
+      writeError(
+          "Presentation could not be parsed due to `${e.toString()}`", 94855333,
+          terminate: true);
     }
 
     RequestPresentation? presentationRequest;
     try {
-      presentationRequest = RequestPresentation.fromJson(presentationRequestMap);
+      presentationRequest =
+          RequestPresentation.fromJson(presentationRequestMap);
     } catch (e, tb) {
-      writeError("Presentation definition could not be parsed due to "
+      writeError(
+          "Presentation definition could not be parsed due to "
           "`${e.toString()}`",
-          49583490, terminate: true);
+          49583490,
+          terminate: true);
     }
 
     var challenge = presentationRequest!.presentationDefinition.first.challenge;
@@ -69,24 +67,30 @@ class DidCommVerifyPresentationCommand extends SsiCliCommandBase {
       }
     } catch (e) {
       writeError("Presentation could not be verified due to `${e.toString()}`",
-          9385734895, terminate: true);
+          9385734895,
+          terminate: true);
     }
 
     // (ii) verify if the presentation satisfies the request
-    var definition = presentationRequest.presentationDefinition
-        .first.presentationDefinition;
+    var definition =
+        presentationRequest.presentationDefinition.first.presentationDefinition;
 
     var collectedVCs = <VerifiableCredential>[];
-    presentation.verifiablePresentation.forEach((VerifiablePresentation element) {
-      collectedVCs.addAll(element.verifiableCredential);
+    presentation.verifiablePresentation
+        .forEach((VerifiablePresentation element) {
+      if (element.verifiableCredential != null) {
+        collectedVCs.addAll(element.verifiableCredential!);
+      }
     });
 
     var vcMap = collectedVCs.map((e) => e.toJson()).toList();
     try {
-         searchCredentialsForPresentationDefinition(vcMap, definition);
-    } catch(e) {
-      writeError("Presentation does not satisfy the request due to `${e.toString()}`",
-          5380934, terminate: true);
+      searchCredentialsForPresentationDefinition(vcMap, definition);
+    } catch (e) {
+      writeError(
+          "Presentation does not satisfy the request due to `${e.toString()}`",
+          5380934,
+          terminate: true);
     }
     writeResult("true");
   }
