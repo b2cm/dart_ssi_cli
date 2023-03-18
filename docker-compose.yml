@@ -1,0 +1,10 @@
+version: '3'
+
+services:
+  compiler-runner:
+    build:
+      context: .
+      dockerfile: Dockerfile-compiler-runner
+    volumes:
+      - .:/data/wallet_cli
+      # - ./ssi_wallet:/data/ssi_wallet

@@ -1,0 +1,10 @@
+FROM dart:stable
+COPY ./ssi_wallet /data/ssi_wallet
+#COPY . /data/wallet_cli
+WORKDIR /data/wallet_cli
+COPY pubspec.yaml /data/wallet_cli
+COPY pubspec.lock /data/wallet_cli
+# WORKDIR /data/wallet_cli
+RUN dart pub get
+# RUN ls -la
+RUN dart compile exe ./bin/main.dart -o /data/wallet_cli/build/ssi-wallet-linux.exe

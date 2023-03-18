@@ -87,7 +87,7 @@ class DidCommOObCommand extends SsiCliCommandBase {
     ..addOption(PARAM_RECEIVER_DID,
         valueHelp: '"did:ethr:0xF1..."',
         help: "UUID: Receiver DID for oob message. "
-            "Must be set when using option `--${PARAM_ENCRYPT_MESSAGE}`",
+              "Must be set when using option `--${PARAM_ENCRYPT_MESSAGE}`",
         mandatory: false)
 
     ;
